@@ -1,0 +1,12 @@
+{
+  "name": "The God Machine",
+  "version": "0.1.0",
+  "description": "bot that can be used to roll dice according to the rules of Chronicles of Darkness/(n)WoD 2ed.",
+  "main": "TGM.js",
+  "author": "Alex Ates",
+  "dependencies": {
+    "discord.io": "^2.5.3",
+    "discord.js": "^11.3.0",
+    "winston": "^2.4.0"
+  }
+}
