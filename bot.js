@@ -38,7 +38,7 @@ function getFlavourText(isChanceDie, successes) {
 
 client.on('message', message => {
 	if (message.author.bot
-		&& !channelCheck(message))
+		|| !channelCheck(message))
 	{
 		return;
 	}
