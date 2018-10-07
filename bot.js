@@ -1,3 +1,5 @@
+const secrets = require('./secret');
+
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
@@ -24,7 +26,11 @@ function getFlavourText(isChanceDie, successes) {
 	}
 	else
 	{
-		if (successes > 0)
+		if (successes >= 5)
+		{
+			text = "Bug detected, exterminator dispatched.";
+		}
+		else if (successes > 0)
 		{
 			text = "Operation falls within acceptable parameters, action approved.";
 		}
@@ -315,4 +321,4 @@ function channelCheck(message) {
 					&& message.channel.parent.name == "Role Playing")));
 }
 
-client.login('NDAyMjYxMjEwMjg1OTk4MDgw.DT2Olw.Rx7SHpRuQOOSy1CBfkUBI2qRVsM');
+client.login(secrets.getToken());
