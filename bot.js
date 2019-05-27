@@ -7,39 +7,60 @@ client.on('ready', () => {
 	console.log('I am ready for operations');
 });
 
+function getRandomStringFromArray(stringArray) {
+	return stringArray[Math.floor(Math.random() * stringArray.length)];
+}
+
 function getFlavourText(isChanceDie, successes) {
 	var text = "";
 	if (isChanceDie)
 	{
 		if (successes == 1)
 		{
-			text = "Unanticipated outcome, adjust input parameters.";
+			text = getRandomStringFromArray([
+				"Unanticipated outcome, adjust input parameters.",
+				"ERROR, impossible result detected."]);
 		}
 		else if (successes == -1)
 		{
-			text = "Excellent, just as planned.";
+			text = getRandomStringFromArray([
+				"Excellent, just as planned.",
+				"Hope is illogical, and must be punished accordingly."]);
 		}
 		else
 		{
-			text = "Hope only serves to amplify disappointment.";
+			text = getRandomStringFromArray([
+				"Hope only serves to amplify disappointment.",
+				"Defeat is certain."]);
 		}
 	}
 	else
 	{
 		if (successes >= 5)
 		{
-			text = "Bug detected, exterminator dispatched.";
+			text = getRandomStringFromArray([
+				"Bug detected, exterminator dispatched.",
+				"WARNING, efficiency too high to be an isolated incident, searching for rogue element..."]);
 		}
 		else if (successes > 0)
 		{
-			text = "Operation falls within acceptable parameters, action approved.";
+			text = getRandomStringFromArray([
+				"Operation falls within acceptable parameters, action approved.",
+				"pity protocol engaged, operation approved."]);
 		}
 		else
 		{
-			text = "Unauthorized operation, action prohibited.";
+			text = getRandomStringFromArray([
+				"Unauthorized operation, action prohibited.",
+				"Projection undesirable, obstructing..."]);
 		}
 	}
 	return "_" + text + "_";
+}
+
+function isMessageSentByAdmin(message) {
+	var guild = client.guilds.get(secrets.getServerID())
+	return (guild != undefined && message.author.id == guild.owner.id);
 }
 
 client.on('message', message => {
@@ -56,17 +77,23 @@ client.on('message', message => {
 	}
 	else if (message.content == "/shutdown")
 	{
-		if (message.member.id == message.guild.owner.id)
+		if (isMessageSentByAdmin(message))
 		{
-			message.channel.send("_Affirmative, shutting down._");
-			shutdown();
+			var messagePromise = message.channel.send("_Affirmative, shutting down._");
+			messagePromise.then(function() {
+				var shutdownPromise = client.destroy()
+				shutdownPromise.then(function() {
+					process.exit();
+				});
+			});
+			
 		}
 		else
 		{
 			message.channel.send("_Threat detected, defense mechanisms active._");
 		}
 	}
-	else if (message.member.id == message.guild.owner.id)
+	else if (isMessageSentByAdmin(message))
 	{
 		//debug commands
 		if (message.content == "/test")
@@ -315,7 +342,7 @@ function getResultText(successes) {
 function channelCheck(message) {
 	return message.guild == undefined
 		|| (message.guild.available
-			&& (message.member.id == message.guild.owner.id
+			&& (isMessageSentByAdmin(message)
 				|| message.channel.name == "test"
 				|| (message.channel.parent != undefined
 					&& message.channel.parent.name == "Role Playing")));
