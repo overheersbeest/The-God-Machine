@@ -27,7 +27,7 @@ module.exports = {
        return [
            "Operation falls within acceptable parameters, action approved.",
            "Pity protocol engaged, operation approved.",
-           ""];
+           "Minor consession permitted."];
     },
     exceptionalSuccess: function() {
        return [
