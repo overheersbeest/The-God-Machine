@@ -1,4 +1,5 @@
 const secrets = require('./secret');
+const flavor = require('./flavorText');
 
 const Discord = require('discord.js');
 const client = new Discord.Client();
@@ -17,42 +18,30 @@ function getFlavourText(isChanceDie, successes) {
 	{
 		if (successes == 1)
 		{
-			text = getRandomStringFromArray([
-				"Unanticipated outcome, adjust input parameters.",
-				"ERROR, impossible result detected."]);
+			text = getRandomStringFromArray(flavor.chanceSuccess());
 		}
 		else if (successes == -1)
 		{
-			text = getRandomStringFromArray([
-				"Excellent, just as planned.",
-				"Hope is illogical, and must be punished accordingly."]);
+			text = getRandomStringFromArray(flavor.chanceDramaticFailure());
 		}
 		else
 		{
-			text = getRandomStringFromArray([
-				"Hope only serves to amplify disappointment.",
-				"Defeat is certain."]);
+			text = getRandomStringFromArray(flavor.chanceFailure());
 		}
 	}
 	else
 	{
 		if (successes >= 5)
 		{
-			text = getRandomStringFromArray([
-				"Bug detected, exterminator dispatched.",
-				"WARNING, efficiency too high to be an isolated incident, searching for rogue element..."]);
+			text = getRandomStringFromArray(flavor.exceptionalSuccess());
 		}
 		else if (successes > 0)
 		{
-			text = getRandomStringFromArray([
-				"Operation falls within acceptable parameters, action approved.",
-				"pity protocol engaged, operation approved."]);
+			text = getRandomStringFromArray(flavor.success());
 		}
 		else
 		{
-			text = getRandomStringFromArray([
-				"Unauthorized operation, action prohibited.",
-				"Projection undesirable, obstructing..."]);
+			text = getRandomStringFromArray(flavor.failure());
 		}
 	}
 	return "_" + text + "_";
