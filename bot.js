@@ -84,6 +84,10 @@ client.on('message', message => {
 	}
 	else if (isMessageSentByAdmin(message))
 	{
+		if (message.content.startsWith('/cleanup '))
+		{
+			cleanupCommand(message);
+		}
 		//debug commands
 		if (message.content == "/test")
 		{
@@ -98,6 +102,74 @@ client.on('message', message => {
 		}
 	}
 });
+
+function cleanupCommand(message) {
+	var segments = message.content.split(' ');
+	segments = segments.filter( function(item) { return item.length > 0 } );
+	if (segments.length != 2)
+	{
+		message.channel.send("Input does not fit expected format, operation aborted.");
+		return;
+	}
+
+	//check how much history we should erase
+	var LengthToEraseMinutes = 0;
+	{
+		var currentValue = 0;
+		for (const char of segments[1])
+		{
+			var parsedInt = parseInt(char)
+			if (!isNaN(parsedInt))
+			{
+				currentValue *= 10;
+				currentValue += parsedInt;
+			}
+			else
+			{
+				switch (char)
+				{
+					case "w":
+							LengthToEraseMinutes += currentValue * 10080;
+						break;
+					case "d":
+							LengthToEraseMinutes += currentValue * 1440;
+						break;
+					case "h":
+							LengthToEraseMinutes += currentValue * 60;
+						break;
+					case "m":
+							LengthToEraseMinutes += currentValue;
+						break;
+					case "s":
+							LengthToEraseMinutes += currentValue / 60;
+						break;
+					default:
+						message.channel.send("Unrecognized history length time denotion '" + char + "' out of " + segments[1]);
+						return;
+				}
+				currentValue = 0;
+			}
+		}
+	}
+
+	//do the actual erasing
+	var CutoffTime = new Date( Date.now() - 1000 * 60 * LengthToEraseMinutes );
+	message.channel.fetchMessages()
+		.then(messages => {
+			var pastMessages = messages.filter(m => m.author.id === client.user.id);
+			var deletedCounter = 0;
+			for (let [snowflake, pastMessage] of pastMessages)
+			{
+				if (pastMessage.createdAt > CutoffTime)
+				{
+					pastMessage.delete();
+					deletedCounter++;
+				}
+			}
+			console.log("deleted " + deletedCounter + " sent by this bot over the last " + LengthToEraseMinutes + " minutes.");
+			})
+		.catch(console.error);
+}
 
 function rollCommand(message) {
 	var rollAmount = -1;
