@@ -95,7 +95,7 @@ client.on('message', message => {
 	}
 	else if (processedMessage.startsWith('/refuse'))
 	{
-		message.channel.send("_The Pawn can refuse as much as it wants, it changes nothing._");
+		message.channel.send("_The pawn can refuse as much as it wants, it changes nothing._");
 	}
 	//debug commands
 	else if (processedMessage == "/test")
