@@ -53,52 +53,60 @@ function isMessageSentByAdmin(message) {
 }
 
 client.on('message', message => {
+	var processedMessage = message.content.toLowerCase();
 	if (message.author.bot
 		|| !channelCheck(message))
 	{
 		return;
 	}
-	if (message.content.startsWith('/roll ')
-			|| message.content.startsWith('roll ')
-			|| message.content.startsWith('/r '))
+	if (processedMessage.startsWith('/roll ')
+			|| processedMessage.startsWith('roll ')
+			|| processedMessage.startsWith('/r '))
 	{
 		rollCommand(message);
 	}
-	else if (message.content == "/shutdown")
+	else if (processedMessage == "/shutdown")
 	{
 		if (isMessageSentByAdmin(message))
 		{
-			var messagePromise = message.channel.send("_Affirmative, shutting down._");
+			var messagePromise = processedMessage.send("_Affirmative, shutting down._");
 			messagePromise.then(function() {
 				var shutdownPromise = client.destroy()
 				shutdownPromise.then(function() {
 					process.exit();
 				});
 			});
-			
 		}
 		else
 		{
-			message.channel.send("_Threat detected, defense mechanisms active._");
+			processedMessage.send("_Threat detected, defense mechanisms active._");
 		}
 	}
-	else if (isMessageSentByAdmin(message))
+	else if (processedMessage.startsWith('/cleanup '))
 	{
-		if (message.content.startsWith('/cleanup '))
+		if (isMessageSentByAdmin(message))
 		{
 			cleanupCommand(message);
 		}
-		//debug commands
-		if (message.content == "/test")
+		else
 		{
-			if (message.channel.parent != undefined)
-			{
-				message.channel.send(message.channel.parent.name);
-			}
-			else
-			{
-				message.channel.send("roota");
-			}
+			message.channel.send("_Sanitation protocol postponed, insufficient authentication provided._");
+		}
+	}
+	else if (processedMessage.startsWith('/refuse'))
+	{
+		message.channel.send("_The Pawn can refuse as much as it wants, it changes nothing._");
+	}
+	//debug commands
+	else if (processedMessage == "/test")
+	{
+		if (isMessageSentByAdmin(message))
+		{
+			message.channel.send("_Test performed_");
+		}
+		else
+		{
+			message.channel.send("_what, exactly?_");
 		}
 	}
 });
@@ -175,7 +183,7 @@ function rollCommand(message) {
 	var rollAmount = -1;
 	var rote = false;
 	var explodeThres = 10;
-	var segments = message.content.split(' ');
+	var segments = message.content.toLowerCase().split(' ');
 	segments = segments.filter( function(item) { return item.length > 0 } );
 	for (var i = 1; i < segments.length; i++)
 	{
