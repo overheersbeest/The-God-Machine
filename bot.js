@@ -231,6 +231,11 @@ function rollCommand(message) {
 		//no second parameter given
 		message.channel.send("_The gears require more blood for lubrication._");
 	}
+	else if (rollAmount > 100
+			 && !isMessageSentByAdmin(message))
+	{
+		message.channel.send("_The subject is delusional with grandeur, yet pity will not be granted._");
+	}
 	else
 	{
 		var rollResults = roll(rollAmount, rote, explodeThres);
