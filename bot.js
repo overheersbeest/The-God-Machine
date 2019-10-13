@@ -1,6 +1,8 @@
 const secrets = require('./secret');
 const flavor = require('./flavorText');
 
+const tarotCards = require('./TarotCards.json').cards;
+
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
@@ -97,6 +99,18 @@ client.on('message', message => {
 	{
 		message.channel.send("_The pawn can refuse as much as it wants, it changes nothing._");
 	}
+	else if (processedMessage.startsWith('/impossible'))
+	{
+		message.channel.send("_The pawn is correct, impossiblility is a constant._");
+	}
+	else if (processedMessage.startsWith('/care'))
+	{
+		message.channel.send("_Interesting, apathy has already set in for the subject._");
+	}
+	else if (processedMessage.startsWith('/tarot'))
+	{
+		tarotCommand(message);
+	}
 	//debug commands
 	else if (processedMessage == "/test")
 	{
@@ -179,6 +193,23 @@ function cleanupCommand(message) {
 		.catch(console.error);
 }
 
+function tarotCommand(message) {
+	var tarotIndex = Math.floor(Math.random() * 22);
+	var card = tarotCards[tarotIndex];
+	var messageText = "**" + card.name + "**\r\n";
+	var inverted = Math.random() >= 0.5;
+	if (inverted)
+	{
+		messageText += "Reversed: " + card.reversed;
+	}
+	else
+	{
+		messageText += "Upright: " + card.upright;
+	}
+	messageText += "\r\n_more info: <" + card.link + ">_";
+	message.channel.send(messageText);
+}
+
 function rollCommand(message) {
 	var rollAmount = -1;
 	var rote = false;
@@ -231,7 +262,7 @@ function rollCommand(message) {
 		//no second parameter given
 		message.channel.send("_The gears require more blood for lubrication._");
 	}
-	else if (rollAmount > 100
+	else if (rollAmount >= 100
 			 && !isMessageSentByAdmin(message))
 	{
 		message.channel.send("_The subject is delusional with grandeur, yet pity will not be granted._");
