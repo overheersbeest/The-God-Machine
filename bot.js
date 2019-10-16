@@ -1,8 +1,13 @@
+console.log('loading secret...');
 const secrets = require('./secret');
+
+console.log('loading flavor text...');
 const flavor = require('./flavorText');
 
+console.log('loading tarot cards...');
 const tarotCards = require('./TarotCards.json').cards;
 
+console.log('initializing discord client...');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
@@ -111,6 +116,20 @@ client.on('message', message => {
 	{
 		tarotCommand(message);
 	}
+	else if (processedMessage.startsWith('/init ')
+			|| processedMessage.startsWith('/initiative '))
+	{
+		var segments = processedMessage.split(' ');
+		segments = segments.filter( function(item) { return item.length > 0 } );
+		if (segments.length >= 2)
+		{
+			rollInitiativeCommand(message, segments[1]);
+		}
+		else
+		{
+			message.channel.send("_Initiative is taken, not given._");
+		}
+	}
 	//debug commands
 	else if (processedMessage == "/test")
 	{
@@ -211,11 +230,22 @@ function tarotCommand(message) {
 }
 
 function rollCommand(message) {
+	var segments = message.content.toLowerCase().split(' ');
+	segments = segments.filter( function(item) { return item.length > 0 } );
+
+	//handle rolling for initiative
+	if (segments.length >= 3
+		&& (segments[1] === 'init'
+			|| segments[1] === 'i'
+			|| segments[1] === 'initiative'))
+	{
+		rollInitiativeCommand(message, segments[2]);
+		return;
+	}
+
 	var rollAmount = -1;
 	var rote = false;
 	var explodeThres = 10;
-	var segments = message.content.toLowerCase().split(' ');
-	segments = segments.filter( function(item) { return item.length > 0 } );
 	for (var i = 1; i < segments.length; i++)
 	{
 		if (i == 1)
@@ -271,6 +301,41 @@ function rollCommand(message) {
 	{
 		var rollResults = roll(rollAmount, rote, explodeThres);
 		message.channel.send(getReturnMessage(rollAmount, rote, explodeThres, rollResults));
+	}
+}
+
+function rollInitiativeCommand(message, param) {
+	var initiative = parseInt(param);
+	if (isNaN(initiative))
+	{
+		if (param.startsWith('+'))
+		{
+			//one last try, remove the '+' and try again
+			initiative = parseInt(param.substring(1, param.length - 1))
+		}
+	}
+	
+	if (isNaN(initiative))
+	{
+		message.channel.send("_Anything that endeavors to break the rules, will find themselves broken instead._");
+	}
+	else
+	{
+		var roll = 0;
+		var rolls = 0;
+		do
+		{
+			roll = Math.floor(Math.random() * 10) + 1;
+			rolls++;
+			initiative += roll;
+		} while (roll == 10);
+	
+		var rollAmountString = "";
+		if (rolls >= 2)
+		{
+			rollAmountString = " (rerolled " + (rolls - 1) + " times)"
+		}
+		message.channel.send(message.author.username + " initiative: " + initiative + rollAmountString);
 	}
 }
 
