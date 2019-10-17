@@ -7,6 +7,11 @@ const flavor = require('./flavorText');
 console.log('loading tarot cards...');
 const tarotCards = require('./TarotCards.json').cards;
 
+console.log('initializing initiative tracking variables...');
+const recentInitResetTimeMinutes = 5;
+var recentInitList = [];
+var recentInitStaleTime = Date.now();
+
 console.log('initializing discord client...');
 const Discord = require('discord.js');
 const client = new Discord.Client();
@@ -61,22 +66,25 @@ function isMessageSentByAdmin(message) {
 
 client.on('message', message => {
 	var processedMessage = message.content.toLowerCase();
+	var commandSegments = processedMessage.split(' ');
+	commandSegments = commandSegments.filter( function(item) { return item.length > 0 } );
+
 	if (message.author.bot
 		|| !channelCheck(message))
 	{
 		return;
 	}
-	if (processedMessage.startsWith('/roll ')
-			|| processedMessage.startsWith('roll ')
-			|| processedMessage.startsWith('/r '))
+	if (commandSegments[0] == '/roll'
+			|| commandSegments[0] == 'roll'
+			|| commandSegments[0] == '/r')
 	{
-		rollCommand(message);
+		rollCommand(message, commandSegments);
 	}
-	else if (processedMessage == "/shutdown")
+	else if (commandSegments[0] == "/shutdown")
 	{
 		if (isMessageSentByAdmin(message))
 		{
-			var messagePromise = processedMessage.send("_Affirmative, shutting down._");
+			var messagePromise = message.channel.send("_Affirmative, shutting down._");
 			messagePromise.then(function() {
 				var shutdownPromise = client.destroy()
 				shutdownPromise.then(function() {
@@ -86,44 +94,42 @@ client.on('message', message => {
 		}
 		else
 		{
-			processedMessage.send("_Threat detected, defense mechanisms active._");
+			message.channel.send("_Threat detected, defense mechanisms active._");
 		}
 	}
-	else if (processedMessage.startsWith('/cleanup '))
+	else if (commandSegments[0] == '/cleanup')
 	{
 		if (isMessageSentByAdmin(message))
 		{
-			cleanupCommand(message);
+			cleanupCommand(message, commandSegments);
 		}
 		else
 		{
 			message.channel.send("_Sanitation protocol postponed, insufficient authentication provided._");
 		}
 	}
-	else if (processedMessage.startsWith('/refuse'))
+	else if (commandSegments[0] == '/refuse')
 	{
 		message.channel.send("_The pawn can refuse as much as it wants, it changes nothing._");
 	}
-	else if (processedMessage.startsWith('/impossible'))
+	else if (commandSegments[0] == '/impossible')
 	{
 		message.channel.send("_The pawn is correct, impossiblility is a constant._");
 	}
-	else if (processedMessage.startsWith('/care'))
+	else if (commandSegments[0] == '/care')
 	{
 		message.channel.send("_Interesting, apathy has already set in for the subject._");
 	}
-	else if (processedMessage.startsWith('/tarot'))
+	else if (commandSegments[0] == '/tarot')
 	{
 		tarotCommand(message);
 	}
-	else if (processedMessage.startsWith('/init ')
-			|| processedMessage.startsWith('/initiative '))
+	else if (commandSegments[0] == '/init'
+			|| commandSegments[0] == '/initiative')
 	{
-		var segments = processedMessage.split(' ');
-		segments = segments.filter( function(item) { return item.length > 0 } );
-		if (segments.length >= 2)
+		if (commandSegments.length >= 2)
 		{
-			rollInitiativeCommand(message, segments[1]);
+			rollInitiativeCommand(message, commandSegments.slice(1, commandSegments.length));
 		}
 		else
 		{
@@ -131,7 +137,7 @@ client.on('message', message => {
 		}
 	}
 	//debug commands
-	else if (processedMessage == "/test")
+	else if (commandSegments[0] == "/test")
 	{
 		if (isMessageSentByAdmin(message))
 		{
@@ -144,10 +150,8 @@ client.on('message', message => {
 	}
 });
 
-function cleanupCommand(message) {
-	var segments = message.content.split(' ');
-	segments = segments.filter( function(item) { return item.length > 0 } );
-	if (segments.length != 2)
+function cleanupCommand(message, commandSegments) {
+	if (commandSegments.length != 2)
 	{
 		message.channel.send("Input does not fit expected format, operation aborted.");
 		return;
@@ -157,7 +161,7 @@ function cleanupCommand(message) {
 	var LengthToEraseMinutes = 0;
 	{
 		var currentValue = 0;
-		for (const char of segments[1])
+		for (const char of commandSegments[1])
 		{
 			var parsedInt = parseInt(char)
 			if (!isNaN(parsedInt))
@@ -185,7 +189,7 @@ function cleanupCommand(message) {
 							LengthToEraseMinutes += currentValue / 60;
 						break;
 					default:
-						message.channel.send("Unrecognized history length time denotion '" + char + "' out of " + segments[1]);
+						message.channel.send("Unrecognized history length time denotion '" + char + "' out of " + commandSegments[1]);
 						return;
 				}
 				currentValue = 0;
@@ -229,31 +233,28 @@ function tarotCommand(message) {
 	message.channel.send(messageText);
 }
 
-function rollCommand(message) {
-	var segments = message.content.toLowerCase().split(' ');
-	segments = segments.filter( function(item) { return item.length > 0 } );
-
+function rollCommand(message, commandSegments) {
 	//handle rolling for initiative
-	if (segments.length >= 3
-		&& (segments[1] === 'init'
-			|| segments[1] === 'i'
-			|| segments[1] === 'initiative'))
+	if (commandSegments.length >= 3
+		&& (commandSegments[1] === 'init'
+			|| commandSegments[1] === 'i'
+			|| commandSegments[1] === 'initiative'))
 	{
-		rollInitiativeCommand(message, segments[2]);
+		rollInitiativeCommand(message, commandSegments.slice(2, commandSegments.length));
 		return;
 	}
 
 	var rollAmount = -1;
 	var rote = false;
 	var explodeThres = 10;
-	for (var i = 1; i < segments.length; i++)
+	for (var i = 1; i < commandSegments.length; i++)
 	{
 		if (i == 1)
 		{
-			var diceNr = parseInt(segments[i]);
+			var diceNr = parseInt(commandSegments[i]);
 			if (isNaN(diceNr))
 			{
-				if (segments[i] === 'chance')
+				if (commandSegments[i] === 'chance')
 				{
 					rollAmount = 0;
 				}
@@ -263,25 +264,25 @@ function rollCommand(message) {
 				rollAmount = diceNr;
 			}
 		}
-		else if (segments[i] === 'rote'
-				 || segments[i] === 'r')
+		else if (commandSegments[i] === 'rote'
+				 || commandSegments[i] === 'r')
 		{
 			rote = true;
 		}
-		else if (segments[i] === '8a'
-				 || segments[i] === '8again')
+		else if (commandSegments[i] === '8a'
+				 || commandSegments[i] === '8again')
 		{
 			explodeThres = 8;
 		}
-		else if (segments[i] === '9a'
-				 || segments[i] === '9again')
+		else if (commandSegments[i] === '9a'
+				 || commandSegments[i] === '9again')
 		{
 			explodeThres = 9;
 		}
-		else if (segments[i] === 'no10'
-				 || segments[i] === 'no10again'
-				 || segments[i] === 'no10-again'
-				 || segments[i] === 'no-10-again')
+		else if (commandSegments[i] === 'no10'
+				 || commandSegments[i] === 'no10again'
+				 || commandSegments[i] === 'no10-again'
+				 || commandSegments[i] === 'no-10-again')
 		{
 			explodeThres = 11;
 		}
@@ -304,38 +305,216 @@ function rollCommand(message) {
 	}
 }
 
-function rollInitiativeCommand(message, param) {
-	var initiative = parseInt(param);
-	if (isNaN(initiative))
+function rollInitiativeCommand(message, remainingCommandSegments) {
+	var initiativeStat = NaN;
+	var modifier = NaN;
+	var insertValue = NaN;
+	var cleanupIfStale = true;
+	var includeSummary = true;
+	var characterName = message.author.username;
+
+	var modifierIndex = -1;
+	var characterNameOverrideIndex = -1;
+	var insertOverrideIndex = -1;
+	
+	//parse params
+	for (var i = 0; i < remainingCommandSegments.length; i++)
 	{
-		if (param.startsWith('+'))
+		var currentSegment = remainingCommandSegments[i];
+		//check for custom inputs first
+		if (i == characterNameOverrideIndex)
 		{
-			//one last try, remove the '+' and try again
-			initiative = parseInt(param.substring(1, param.length - 1))
+			characterName = currentSegment;
+		}
+		else if (i == modifierIndex)
+		{
+			modifier = parseInt(currentSegment);
+			if (isNaN(modifier))
+			{
+				message.channel.send("invalid modifier parameter: " + currentSegment);
+			}
+		}
+		else if (i == insertOverrideIndex)
+		{
+			insertValue = parseInt(currentSegment);
+			if (isNaN(insertValue))
+			{
+				message.channel.send("invalid insert parameter: " + currentSegment);
+			}
+		}
+		else if (currentSegment == "character"
+				|| currentSegment == "char"
+				|| currentSegment == "c"
+				|| currentSegment == "charname"
+				|| currentSegment == "char"
+				|| currentSegment == "charactername"
+				|| currentSegment == "for")
+		{
+			characterNameOverrideIndex = i + 1;
+		}
+		else if (currentSegment == "nosummary")
+		{
+			includeSummary = false;
+		}
+		else if (currentSegment == "mod")
+		{
+			modifierIndex = i + 1;
+		}
+		else if (currentSegment == "noclean"
+				|| currentSegment == "nocleanup")
+		{
+			cleanupIfStale = false;
+		}
+		else if (currentSegment == "insert")
+		{
+			insertOverrideIndex = i + 1;
+		}
+		else if (currentSegment == "review"
+				|| currentSegment == "summary")
+		{
+			message.channel.send(getInitSummaryString());
+			return;
+		}
+		else if (currentSegment == "clear"
+				|| currentSegment == "cleanup")
+		{
+			message.channel.send("_Purging combat..._");
+			recentInitList = [];
+			return;
+		}
+		else
+		{
+			//specific inputs failed, assume its the modifier, so try that next
+			var newInit = parseInt(currentSegment);
+			if (isNaN(newInit))
+			{
+				if (currentSegment.startsWith('+'))
+				{
+					//one last try, remove the '+' and try again
+					newInit = parseInt(currentSegment.substring(1, currentSegment.length - 1))
+				}
+			}
+			
+			if (isNaN(newInit))
+			{
+				message.channel.send("unknown parameter: \'" + currentSegment + "\'");
+				return;
+			}
+			else if (isNaN(initiativeStat))
+			{
+				initiativeStat = newInit;
+			}
+			else
+			{
+				message.channel.send("initiative modifier is being set multiple times (from" + initiativeStat + " to " + newInit);
+			}
 		}
 	}
 	
-	if (isNaN(initiative))
+	if (isNaN(initiativeStat)
+		&& isNaN(modifier)
+		&& isNaN(insertValue))
 	{
 		message.channel.send("_Anything that endeavors to break the rules, will find themselves broken instead._");
 	}
 	else
 	{
-		var roll = 0;
-		var rolls = 0;
-		do
+		var replyStringSuffix = "";
+		var unmodifiedInitiative = 0;
+
+		//get the unmodified initiative
+		if (isNaN(initiativeStat)
+			&& isNaN(insertValue))
 		{
-			roll = Math.floor(Math.random() * 10) + 1;
-			rolls++;
-			initiative += roll;
-		} while (roll == 10);
-	
-		var rollAmountString = "";
-		if (rolls >= 2)
-		{
-			rollAmountString = " (rerolled " + (rolls - 1) + " times)"
+			//we have nothing to base our unmodified Initiative on, search for it in the recent list
+			cleanupIfStale = false;
+			const foundEntry = recentInitList[characterName];
+			if (foundEntry)
+			{
+				unmodifiedInitiative = foundEntry.unmodified;
+			}
+			else
+			{
+				message.channel.send("_Anything that endeavors to break the rules, will find themselves broken instead._");
+				return;
+			}
 		}
-		message.channel.send(message.author.username + " initiative: " + initiative + rollAmountString);
+		else if (!isNaN(insertValue))
+		{
+			//we have an insert value, use that
+			unmodifiedInitiative = insertValue;
+		}
+		else
+		{
+			//we're rolling initiative for this character
+			var roll = 0;
+			var rolls = 0;
+			do
+			{
+				roll = Math.floor(Math.random() * 10) + 1;
+				rolls++;
+				unmodifiedInitiative += roll;
+			} while (roll == 10);
+			
+			unmodifiedInitiative += initiativeStat;
+
+			if (rolls == 2)
+			{
+				replyStringSuffix += " (rerolled 1 time)"
+			}
+			else if (rolls > 2)
+			{
+				replyStringSuffix += " (rerolled " + (rolls - 1) + " times)"
+			}
+		}
+		
+		if (isNaN(modifier))
+		{
+			modifier = 0;
+		}
+
+		var totalInitiative = unmodifiedInitiative + modifier;
+	
+		if (includeSummary)
+		{
+			if (cleanupIfStale
+				&& recentInitStaleTime < Date.now())
+			{
+				recentInitList = [];
+			}
+			recentInitStaleTime = new Date(Date.now() + recentInitResetTimeMinutes * 60000);
+			recentInitList[characterName] = {name: characterName, total: totalInitiative, unmodified: unmodifiedInitiative};
+
+			replyStringSuffix += "\r\n" + getInitSummaryString();
+		}
+
+		message.channel.send(characterName + " initiative: " + totalInitiative + replyStringSuffix);
+	}
+}
+
+function getInitSummaryString() {
+	var sortedList = Object.values(recentInitList);
+	if (sortedList.length == 0)
+	{
+		return "No initiative is currently being tracked.";
+	}
+	else
+	{
+		var retVal = "**Current combat consists of:**";
+		sortedList.sort((a,b) => a.total - b.total);
+		for (var i = 0; i < sortedList.length; i++)
+		{
+			const item = sortedList[i];
+			if (item.total != item.unmodified)
+			{
+				retVal += "\r\n" + item.total + ": " + item.name + " (" + (item.total - item.unmodified) + ")";
+			}
+			else
+			{
+				retVal += "\r\n" + item.total + ": " + item.name;
+			}
+		}
+		return retVal;
 	}
 }
 
