@@ -12,6 +12,9 @@ const recentInitResetTimeMinutes = 5;
 var recentInitList = [];
 var recentInitStaleTime = Date.now();
 
+console.log('initializing renaming variables...');
+var renameDict = {};
+
 console.log('initializing discord client...');
 const Discord = require('discord.js');
 const client = new Discord.Client();
@@ -65,31 +68,48 @@ function isMessageSentByAdmin(message) {
 }
 
 client.on('message', message => {
-	var processedMessage = message.content.toLowerCase();
-	var commandSegments = processedMessage.split(' ');
+	var commandSegments = message.content.split(' ');
 	commandSegments = commandSegments.filter( function(item) { return item.length > 0 } );
+	var commandID = commandSegments[0].toLowerCase();
 
 	if (message.author.bot
 		|| !channelCheck(message))
 	{
 		return;
 	}
-	if (commandSegments[0] == '/roll'
-			|| commandSegments[0] == 'roll'
-			|| commandSegments[0] == '/r')
+	if (commandID == '/roll'
+			|| commandID == 'roll'
+			|| commandID == '/r')
 	{
 		rollCommand(message, commandSegments);
 	}
-	else if (commandSegments[0] == "/shutdown")
+	else if (commandID == "/shutdown")
 	{
 		if (isMessageSentByAdmin(message))
 		{
 			var messagePromise = message.channel.send("_Affirmative, shutting down._");
 			messagePromise.then(function() {
-				var shutdownPromise = client.destroy()
-				shutdownPromise.then(function() {
-					process.exit();
-				});
+				var renamePromises = [];
+				for (guildIDs in client.guilds.array())
+				{
+					var guild = client.guilds.array()[guildIDs];
+					for (guildMemberID in guild.members.array())
+					{
+						var member = guild.members.array()[guildMemberID];
+						if (member
+							&& renameDict[member.id])
+						{
+							var renamePromise = member.setNickname(renameDict[member.id].original);
+							renamePromises.push(renamePromise);
+						}
+					}
+				}
+				Promise.all(renamePromises).then(function() {
+					var shutdownPromise = client.destroy()
+					shutdownPromise.then(function() {
+						process.exit();
+					});
+				})
 			});
 		}
 		else
@@ -97,7 +117,7 @@ client.on('message', message => {
 			message.channel.send("_Threat detected, defense mechanisms active._");
 		}
 	}
-	else if (commandSegments[0] == '/cleanup')
+	else if (commandID == '/cleanup')
 	{
 		if (isMessageSentByAdmin(message))
 		{
@@ -108,24 +128,35 @@ client.on('message', message => {
 			message.channel.send("_Sanitation protocol postponed, insufficient authentication provided._");
 		}
 	}
-	else if (commandSegments[0] == '/refuse')
+	else if (commandID == '/refuse')
 	{
 		message.channel.send("_The pawn can refuse as much as it wants, it changes nothing._");
 	}
-	else if (commandSegments[0] == '/impossible')
+	else if (commandID == '/impossible')
 	{
 		message.channel.send("_The pawn is correct, impossiblility is a constant._");
 	}
-	else if (commandSegments[0] == '/care')
+	else if (commandID == '/care')
 	{
 		message.channel.send("_Interesting, apathy has already set in for the subject._");
 	}
-	else if (commandSegments[0] == '/tarot')
+	else if (commandID == '/tarot')
 	{
 		tarotCommand(message);
 	}
-	else if (commandSegments[0] == '/init'
-			|| commandSegments[0] == '/initiative')
+	else if (commandID == '/rename'
+			|| commandID == '/renameme')
+	{
+		renameCommand(message, commandSegments);
+	}
+	else if (commandID == '/renameback'
+			|| commandID == '/renameclear'
+			|| commandID == '/renamereset')
+	{
+		renameBackCommand(message);
+	}
+	else if (commandID == '/init'
+			|| commandID == '/initiative')
 	{
 		if (commandSegments.length >= 2)
 		{
@@ -136,8 +167,7 @@ client.on('message', message => {
 			message.channel.send("_Initiative is taken, not given._");
 		}
 	}
-	//debug commands
-	else if (commandSegments[0] == "/test")
+	else if (commandID == "/test")
 	{
 		if (isMessageSentByAdmin(message))
 		{
@@ -171,7 +201,7 @@ function cleanupCommand(message, commandSegments) {
 			}
 			else
 			{
-				switch (char)
+				switch (char.toLowerCase())
 				{
 					case "w":
 							LengthToEraseMinutes += currentValue * 10080;
@@ -233,12 +263,58 @@ function tarotCommand(message) {
 	message.channel.send(messageText);
 }
 
+function renameCommand(message, commandSegments) {
+	const guildMember = message.member;
+	if (guildMember
+		&& commandSegments.length >= 2)
+	{
+		const newName = message.content.slice(commandSegments[0].length + 1);
+		if (renameDict[guildMember.id])
+		{
+			renameDict[guildMember.id].new = newName;
+		}
+		else
+		{
+			renameDict[guildMember.id] = {original: guildMember.nickname, new: newName};
+		}
+		guildMember.setNickname(newName)
+			.then(message.channel.send("_New alias established:_ " + newName))
+			.catch(message.channel.send("_Operation aborted, reality would shatter._"));
+		
+	}
+	else
+	{
+		message.channel.send("_Do it yourself, pest._");
+	}
+}
+
+function renameBackCommand(message) {
+	var guildMember = message.member;
+	if (guildMember)
+	{
+		if (renameDict[guildMember.id])
+		{
+			guildMember.setNickname(renameDict[guildMember.id].original)
+				.then(message.channel.send("_Alias restored:_ " + renameDict[guildMember.id].original))
+				.catch(message.channel.send("_Operation aborted, reality would shatter._"));
+		}
+		else
+		{
+			message.channel.send("_No record yet exists of the subject, it must be insigificant._");
+		}
+	}
+	else
+	{
+		message.channel.send("_Do it yourself, pest._");
+	}
+}
+
 function rollCommand(message, commandSegments) {
 	//handle rolling for initiative
 	if (commandSegments.length >= 3
-		&& (commandSegments[1] === 'init'
-			|| commandSegments[1] === 'i'
-			|| commandSegments[1] === 'initiative'))
+		&& (commandSegments[1].toLowerCase() === 'init'
+			|| commandSegments[1].toLowerCase() === 'i'
+			|| commandSegments[1].toLowerCase() === 'initiative'))
 	{
 		rollInitiativeCommand(message, commandSegments.slice(2, commandSegments.length));
 		return;
@@ -249,12 +325,13 @@ function rollCommand(message, commandSegments) {
 	var explodeThres = 10;
 	for (var i = 1; i < commandSegments.length; i++)
 	{
+		const segment = commandSegments[i].toLowerCase();
 		if (i == 1)
 		{
-			var diceNr = parseInt(commandSegments[i]);
+			var diceNr = parseInt(segment);
 			if (isNaN(diceNr))
 			{
-				if (commandSegments[i] === 'chance')
+				if (segment === 'chance')
 				{
 					rollAmount = 0;
 				}
@@ -264,25 +341,25 @@ function rollCommand(message, commandSegments) {
 				rollAmount = diceNr;
 			}
 		}
-		else if (commandSegments[i] === 'rote'
-				 || commandSegments[i] === 'r')
+		else if (segment === 'rote'
+				 || segment === 'r')
 		{
 			rote = true;
 		}
-		else if (commandSegments[i] === '8a'
-				 || commandSegments[i] === '8again')
+		else if (segment === '8a'
+				 || segment === '8again')
 		{
 			explodeThres = 8;
 		}
-		else if (commandSegments[i] === '9a'
-				 || commandSegments[i] === '9again')
+		else if (segment === '9a'
+				 || segment === '9again')
 		{
 			explodeThres = 9;
 		}
-		else if (commandSegments[i] === 'no10'
-				 || commandSegments[i] === 'no10again'
-				 || commandSegments[i] === 'no10-again'
-				 || commandSegments[i] === 'no-10-again')
+		else if (segment === 'no10'
+				 || segment === 'no10again'
+				 || segment === 'no10-again'
+				 || segment === 'no-10-again')
 		{
 			explodeThres = 11;
 		}
@@ -320,7 +397,7 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 	//parse params
 	for (var i = 0; i < remainingCommandSegments.length; i++)
 	{
-		var currentSegment = remainingCommandSegments[i];
+		var currentSegment = remainingCommandSegments[i].toLowerCase();
 		//check for custom inputs first
 		if (i == characterNameOverrideIndex)
 		{
@@ -501,7 +578,7 @@ function getInitSummaryString() {
 	else
 	{
 		var retVal = "**Current combat consists of:**";
-		sortedList.sort((a,b) => a.total - b.total);
+		sortedList.sort((a,b) => b.total - a.total);
 		for (var i = 0; i < sortedList.length; i++)
 		{
 			const item = sortedList[i];
