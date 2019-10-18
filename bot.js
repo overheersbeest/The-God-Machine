@@ -8,7 +8,7 @@ console.log('loading tarot cards...');
 const tarotCards = require('./TarotCards.json').cards;
 
 console.log('initializing initiative tracking variables...');
-const recentInitResetTimeMinutes = 5;
+const recentInitResetTimeMinutes = 30;
 var recentInitList = [];
 var recentInitStaleTime = Date.now();
 
@@ -23,54 +23,24 @@ client.on('ready', () => {
 	console.log('I am ready for operations');
 });
 
-function getRandomStringFromArray(stringArray) {
-	return stringArray[Math.floor(Math.random() * stringArray.length)];
-}
-
-function getFlavourText(isChanceDie, successes) {
-	var text = "";
-	if (isChanceDie)
-	{
-		if (successes == 1)
-		{
-			text = getRandomStringFromArray(flavor.chanceSuccess());
-		}
-		else if (successes == -1)
-		{
-			text = getRandomStringFromArray(flavor.chanceDramaticFailure());
-		}
-		else
-		{
-			text = getRandomStringFromArray(flavor.chanceFailure());
-		}
-	}
-	else
-	{
-		if (successes >= 5)
-		{
-			text = getRandomStringFromArray(flavor.exceptionalSuccess());
-		}
-		else if (successes > 0)
-		{
-			text = getRandomStringFromArray(flavor.success());
-		}
-		else
-		{
-			text = getRandomStringFromArray(flavor.failure());
-		}
-	}
-	return "_" + text + "_";
-}
-
 function isMessageSentByAdmin(message) {
-	var guild = client.guilds.get(secrets.getServerID())
+	const guild = client.guilds.get(secrets.getServerID())
 	return (guild != undefined && message.author.id == guild.owner.id);
 }
 
+function channelCheck(message) {
+	return message.guild == undefined
+		|| (message.guild.available
+			&& (isMessageSentByAdmin(message)
+				|| message.channel.name == "test"
+				|| (message.channel.parent != undefined
+					&& message.channel.parent.name == "Role Playing")));
+}
+
 client.on('message', message => {
-	var commandSegments = message.content.split(' ');
+	let commandSegments = message.content.split(' ');
 	commandSegments = commandSegments.filter( function(item) { return item.length > 0 } );
-	var commandID = commandSegments[0].toLowerCase();
+	const commandID = commandSegments[0].toLowerCase();
 
 	if (message.author.bot
 		|| !channelCheck(message))
@@ -87,25 +57,23 @@ client.on('message', message => {
 	{
 		if (isMessageSentByAdmin(message))
 		{
-			var messagePromise = message.channel.send("_Affirmative, shutting down._");
+			let messagePromise = message.channel.send("_Affirmative, shutting down._");
 			messagePromise.then(function() {
-				var renamePromises = [];
-				for (guildIDs in client.guilds.array())
+				let renamePromises = [];
+				for (let [guildSnowflake, guild] of client.guilds)
 				{
-					var guild = client.guilds.array()[guildIDs];
-					for (guildMemberID in guild.members.array())
+					for (let [memberSnowflake, member] of guild.members)
 					{
-						var member = guild.members.array()[guildMemberID];
 						if (member
 							&& renameDict[member.id])
 						{
-							var renamePromise = member.setNickname(renameDict[member.id].original);
+							let renamePromise = member.setNickname(renameDict[member.id].original);
 							renamePromises.push(renamePromise);
 						}
 					}
 				}
 				Promise.all(renamePromises).then(function() {
-					var shutdownPromise = client.destroy()
+					let shutdownPromise = client.destroy()
 					shutdownPromise.then(function() {
 						process.exit();
 					});
@@ -125,7 +93,7 @@ client.on('message', message => {
 		}
 		else
 		{
-			message.channel.send("_Sanitation protocol postponed, insufficient authentication provided._");
+			message.channel.send(flavor.getFlavourTextForPermissionError());
 		}
 	}
 	else if (commandID == '/refuse')
@@ -183,17 +151,17 @@ client.on('message', message => {
 function cleanupCommand(message, commandSegments) {
 	if (commandSegments.length != 2)
 	{
-		message.channel.send("Input does not fit expected format, operation aborted.");
+		message.channel.send(flavor.getFlavourTextForParamError());
 		return;
 	}
 
 	//check how much history we should erase
-	var LengthToEraseMinutes = 0;
+	let LengthToEraseMinutes = 0;
 	{
-		var currentValue = 0;
+		let currentValue = 0;
 		for (const char of commandSegments[1])
 		{
-			var parsedInt = parseInt(char)
+			let parsedInt = parseInt(char)
 			if (!isNaN(parsedInt))
 			{
 				currentValue *= 10;
@@ -228,11 +196,11 @@ function cleanupCommand(message, commandSegments) {
 	}
 
 	//do the actual erasing
-	var CutoffTime = new Date( Date.now() - 1000 * 60 * LengthToEraseMinutes );
+	const CutoffTime = new Date( Date.now() - 1000 * 60 * LengthToEraseMinutes );
 	message.channel.fetchMessages()
 		.then(messages => {
-			var pastMessages = messages.filter(m => m.author.id === client.user.id);
-			var deletedCounter = 0;
+			const pastMessages = messages.filter(m => m.author.id === client.user.id);
+			let deletedCounter = 0;
 			for (let [snowflake, pastMessage] of pastMessages)
 			{
 				if (pastMessage.createdAt > CutoffTime)
@@ -247,10 +215,10 @@ function cleanupCommand(message, commandSegments) {
 }
 
 function tarotCommand(message) {
-	var tarotIndex = Math.floor(Math.random() * 22);
-	var card = tarotCards[tarotIndex];
-	var messageText = "**" + card.name + "**\r\n";
-	var inverted = Math.random() >= 0.5;
+	const tarotIndex = Math.floor(Math.random() * 22);
+	const card = tarotCards[tarotIndex];
+	const inverted = Math.random() >= 0.5;
+	let messageText = "**" + card.name + "**\r\n";
 	if (inverted)
 	{
 		messageText += "Reversed: " + card.reversed;
@@ -278,25 +246,25 @@ function renameCommand(message, commandSegments) {
 			renameDict[guildMember.id] = {original: guildMember.nickname, new: newName};
 		}
 		guildMember.setNickname(newName)
-			.then(message.channel.send("_New alias established:_ " + newName))
-			.catch(message.channel.send("_Operation aborted, reality would shatter._"));
+			.then(message.channel.send("_New alias establishing:_ " + newName))
+			.catch(message.channel.send(flavor.getFlavourTextForError()));
 		
 	}
 	else
 	{
-		message.channel.send("_Do it yourself, pest._");
+		message.channel.send(flavor.getFlavourTextForParamError());
 	}
 }
 
 function renameBackCommand(message) {
-	var guildMember = message.member;
+	let guildMember = message.member;
 	if (guildMember)
 	{
 		if (renameDict[guildMember.id])
 		{
 			guildMember.setNickname(renameDict[guildMember.id].original)
-				.then(message.channel.send("_Alias restored:_ " + renameDict[guildMember.id].original))
-				.catch(message.channel.send("_Operation aborted, reality would shatter._"));
+				.then(message.channel.send("_Alias restoring:_ " + renameDict[guildMember.id].original))
+				.catch(message.channel.send(flavor.getFlavourTextForError()));
 		}
 		else
 		{
@@ -305,7 +273,7 @@ function renameBackCommand(message) {
 	}
 	else
 	{
-		message.channel.send("_Do it yourself, pest._");
+		message.channel.send(flavor.getFlavourTextForError());
 	}
 }
 
@@ -320,15 +288,15 @@ function rollCommand(message, commandSegments) {
 		return;
 	}
 
-	var rollAmount = -1;
-	var rote = false;
-	var explodeThres = 10;
-	for (var i = 1; i < commandSegments.length; i++)
+	let rollAmount = -1;
+	let rote = false;
+	let explodeThres = 10;
+	for (let i = 1; i < commandSegments.length; i++)
 	{
 		const segment = commandSegments[i].toLowerCase();
 		if (i == 1)
 		{
-			var diceNr = parseInt(segment);
+			let diceNr = parseInt(segment);
 			if (isNaN(diceNr))
 			{
 				if (segment === 'chance')
@@ -368,36 +336,36 @@ function rollCommand(message, commandSegments) {
 	if (rollAmount < 0)
 	{
 		//no second parameter given
-		message.channel.send("_The gears require more blood for lubrication._");
+		message.channel.send(flavor.getFlavourTextForParamError());
 	}
 	else if (rollAmount >= 100
 			 && !isMessageSentByAdmin(message))
 	{
-		message.channel.send("_The subject is delusional with grandeur, yet pity will not be granted._");
+		message.channel.send(flavor.getFlavourTextForPermissionError());
 	}
 	else
 	{
-		var rollResults = roll(rollAmount, rote, explodeThres);
+		let rollResults = roll(rollAmount, rote, explodeThres);
 		message.channel.send(getReturnMessage(rollAmount, rote, explodeThres, rollResults));
 	}
 }
 
 function rollInitiativeCommand(message, remainingCommandSegments) {
-	var initiativeStat = NaN;
-	var modifier = NaN;
-	var insertValue = NaN;
-	var cleanupIfStale = true;
-	var includeSummary = true;
-	var characterName = message.author.username;
+	let initiativeStat = NaN;
+	let modifier = NaN;
+	let insertValue = NaN;
+	let cleanupIfStale = true;
+	let includeSummary = true;
+	let characterName = message.author.username;
 
-	var modifierIndex = -1;
-	var characterNameOverrideIndex = -1;
-	var insertOverrideIndex = -1;
+	let modifierIndex = -1;
+	let characterNameOverrideIndex = -1;
+	let insertOverrideIndex = -1;
 	
 	//parse params
-	for (var i = 0; i < remainingCommandSegments.length; i++)
+	for (let i = 0; i < remainingCommandSegments.length; i++)
 	{
-		var currentSegment = remainingCommandSegments[i].toLowerCase();
+		const currentSegment = remainingCommandSegments[i].toLowerCase();
 		//check for custom inputs first
 		if (i == characterNameOverrideIndex)
 		{
@@ -462,7 +430,7 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 		else
 		{
 			//specific inputs failed, assume its the modifier, so try that next
-			var newInit = parseInt(currentSegment);
+			let newInit = parseInt(currentSegment);
 			if (isNaN(newInit))
 			{
 				if (currentSegment.startsWith('+'))
@@ -492,12 +460,13 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 		&& isNaN(modifier)
 		&& isNaN(insertValue))
 	{
-		message.channel.send("_Anything that endeavors to break the rules, will find themselves broken instead._");
+		//no instruction parameters given
+		message.channel.send(flavor.getFlavourTextForParamError());
 	}
 	else
 	{
-		var replyStringSuffix = "";
-		var unmodifiedInitiative = 0;
+		let replyStringSuffix = "";
+		let unmodifiedInitiative = 0;
 
 		//get the unmodified initiative
 		if (isNaN(initiativeStat)
@@ -512,7 +481,7 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 			}
 			else
 			{
-				message.channel.send("_Anything that endeavors to break the rules, will find themselves broken instead._");
+				message.channel.send(flavor.getFlavourTextForError());
 				return;
 			}
 		}
@@ -524,8 +493,8 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 		else
 		{
 			//we're rolling initiative for this character
-			var roll = 0;
-			var rolls = 0;
+			let roll = 0;
+			let rolls = 0;
 			do
 			{
 				roll = Math.floor(Math.random() * 10) + 1;
@@ -550,7 +519,7 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 			modifier = 0;
 		}
 
-		var totalInitiative = unmodifiedInitiative + modifier;
+		const totalInitiative = unmodifiedInitiative + modifier;
 	
 		if (includeSummary)
 		{
@@ -570,18 +539,17 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 }
 
 function getInitSummaryString() {
-	var sortedList = Object.values(recentInitList);
+	let sortedList = Object.values(recentInitList);
 	if (sortedList.length == 0)
 	{
 		return "No initiative is currently being tracked.";
 	}
 	else
 	{
-		var retVal = "**Current combat consists of:**";
+		let retVal = "**Current combat consists of:**";
 		sortedList.sort((a,b) => b.total - a.total);
-		for (var i = 0; i < sortedList.length; i++)
+		for (let item of sortedList)
 		{
-			const item = sortedList[i];
 			if (item.total != item.unmodified)
 			{
 				retVal += "\r\n" + item.total + ": " + item.name + " (" + (item.total - item.unmodified) + ")";
@@ -596,8 +564,8 @@ function getInitSummaryString() {
 }
 
 function roll(rollAmount, rote, explodeThres) {
-	var successes = 0;
-	var diceValues = [];
+	let successes = 0;
+	let diceValues = [];
 	
 	if (rollAmount == 0
 		&& rote)
@@ -609,7 +577,7 @@ function roll(rollAmount, rote, explodeThres) {
 	if (rollAmount == 0)
 	{
 		//chance die
-		var roll = Math.floor(Math.random() * 10) + 1;
+		const roll = Math.floor(Math.random() * 10) + 1;
 		
 		if (roll == 10)			successes = 1;
 		else if (roll == 1)		successes = -1;
@@ -620,11 +588,11 @@ function roll(rollAmount, rote, explodeThres) {
 	else
 	{
 		//dice pool
-		var explodedDice = 0;
-		var rollsStr = "";
-		for (var r = 0; r < rollAmount + explodedDice; r++)
+		let explodedDice = 0;
+		let rollsStr = "";
+		for (let r = 0; r < rollAmount + explodedDice; r++)
 		{
-			var roll = Math.floor(Math.random() * 10) + 1;
+			const roll = Math.floor(Math.random() * 10) + 1;
 			
 			if (roll >= 8)
 			{
@@ -648,15 +616,15 @@ function roll(rollAmount, rote, explodeThres) {
 }
 
 function getReturnMessage(rollAmount, rote, explodeThres, rollResults) {
-	var chanceDie = rollResults[0];
-	var successes = rollResults[1];
-	var diceValues = rollResults[2];
+	const chanceDie = rollResults[0];
+	const successes = rollResults[1];
+	const diceValues = rollResults[2];
 	
-	return getRollTypeString(chanceDie, rollAmount, rote, explodeThres) + " resulted in " + getResultText(successes) + " (" + getRollString(chanceDie, diceValues, rollAmount, rote, explodeThres) + ") " + getFlavourText(chanceDie, successes);
+	return getRollTypeString(chanceDie, rollAmount, rote, explodeThres) + " resulted in " + getResultText(successes) + " (" + getRollString(chanceDie, diceValues, rollAmount, rote, explodeThres) + ") " + flavor.getFlavourTextForRoll(chanceDie, successes);
 }
 
 function getRollString(chanceDie, diceValues, rollAmount, rote, explodeThres) {
-	var rollsStr = "";
+	let rollsStr = "";
 	if (chanceDie)
 	{
 		if (diceValues[0] == 10)
@@ -670,9 +638,9 @@ function getRollString(chanceDie, diceValues, rollAmount, rote, explodeThres) {
 	}
 	else
 	{
-		for (var d = 0; d < diceValues.length; d++)
+		for (let d = 0; d < diceValues.length; d++)
 		{
-			var roll = diceValues[d];
+			const roll = diceValues[d];
 			
 			//check for rollAmount > 0 in case of promoted chance die
 			if (d == rollAmount
@@ -716,7 +684,7 @@ function getRollTypeString(chanceDie, rollAmount, rote, explodeThres) {
 	}
 	else
 	{
-		var rollTypeString = rollAmount + " rolls";
+		let rollTypeString = rollAmount + " rolls";
 		if (rote
 			|| explodeThres != 10)
 		{
@@ -763,15 +731,6 @@ function getResultText(successes) {
 	{
 		return "a dramatic failure";
 	}
-}
-
-function channelCheck(message) {
-	return message.guild == undefined
-		|| (message.guild.available
-			&& (isMessageSentByAdmin(message)
-				|| message.channel.name == "test"
-				|| (message.channel.parent != undefined
-					&& message.channel.parent.name == "Role Playing")));
 }
 
 client.login(secrets.getToken());
