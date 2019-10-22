@@ -40,6 +40,10 @@ function channelCheck(message) {
 client.on('message', message => {
 	let commandSegments = message.content.split(' ');
 	commandSegments = commandSegments.filter( function(item) { return item.length > 0 } );
+	if (commandSegments.length == 0)
+	{
+		return;
+	}
 	const commandID = commandSegments[0].toLowerCase();
 
 	if (message.author.bot
