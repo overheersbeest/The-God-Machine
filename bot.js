@@ -361,6 +361,11 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 	let cleanupIfStale = true;
 	let includeSummary = true;
 	let characterName = message.author.username;
+	if (message.member
+		&& message.member.nickname)
+	{
+		characterName = message.member.nickname;
+	}
 
 	let modifierIndex = -1;
 	let characterNameOverrideIndex = -1;
@@ -369,18 +374,19 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 	//parse params
 	for (let i = 0; i < remainingCommandSegments.length; i++)
 	{
-		const currentSegment = remainingCommandSegments[i].toLowerCase();
+		const currentSegmentRaw = remainingCommandSegments[i];
+		const currentSegment = currentSegmentRaw.toLowerCase();
 		//check for custom inputs first
 		if (i == characterNameOverrideIndex)
 		{
-			characterName = currentSegment;
+			characterName = currentSegmentRaw;
 		}
 		else if (i == modifierIndex)
 		{
 			modifier = parseInt(currentSegment);
 			if (isNaN(modifier))
 			{
-				message.channel.send("invalid modifier parameter: " + currentSegment);
+				message.channel.send("invalid modifier parameter: " + currentSegmentRaw);
 			}
 		}
 		else if (i == insertOverrideIndex)
@@ -388,7 +394,7 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 			insertValue = parseInt(currentSegment);
 			if (isNaN(insertValue))
 			{
-				message.channel.send("invalid insert parameter: " + currentSegment);
+				message.channel.send("invalid insert parameter: " + currentSegmentRaw);
 			}
 		}
 		else if (currentSegment == "character"
