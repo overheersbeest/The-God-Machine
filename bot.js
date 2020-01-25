@@ -350,7 +350,9 @@ function rollCommand(message, commandSegments) {
 	else
 	{
 		let rollResults = roll(rollAmount, rote, explodeThres);
-		message.channel.send(getReturnMessage(rollAmount, rote, explodeThres, rollResults));
+		let returnMessage = getReturnMessage(rollAmount, rote, explodeThres, rollResults)
+		console.log(returnMessage);
+		message.channel.send(returnMessage);
 	}
 }
 
@@ -539,7 +541,7 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 				recentInitList = [];
 			}
 			recentInitStaleTime = new Date(Date.now() + recentInitResetTimeMinutes * 60000);
-			recentInitList[characterName] = {name: characterName, total: totalInitiative, unmodified: unmodifiedInitiative};
+			recentInitList[characterName] = {name: characterName, total: totalInitiative, unmodified: unmodifiedInitiative, stat: initiativeStat, random: Math.random()};
 
 			replyStringSuffix += "\r\n" + getInitSummaryString();
 		}
@@ -557,7 +559,18 @@ function getInitSummaryString() {
 	else
 	{
 		let retVal = "**Current combat consists of:**";
-		sortedList.sort((a,b) => b.total - a.total);
+		sortedList.sort(function (a, b) {
+			if (b.total != a.total)
+			{
+				return b.total - a.total
+			}
+			if (b.stat != a.stat)
+			{
+				return b.stat - a.stat
+			}
+			return b.random - a.random
+		});
+
 		for (let item of sortedList)
 		{
 			if (item.total != item.unmodified)
