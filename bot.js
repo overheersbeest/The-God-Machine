@@ -143,11 +143,19 @@ client.on('message', message => {
 	{
 		if (isMessageSentByAdmin(message))
 		{
-			message.channel.send("_Test performed_");
+			message.channel.send("_I'm back, bitches_");
 		}
 		else
 		{
 			message.channel.send("_what, exactly?_");
+		}
+	}
+	else if (message.content.includes("<@!" + client.user.id + ">")
+			 && message.content.includes("SITREP"))
+	{
+		if (isMessageSentByAdmin(message))
+		{
+			message.channel.send("_All systems nominal, ready for operations._");
 		}
 	}
 });
@@ -399,11 +407,7 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 		}
 		else if (currentSegment == "character"
 				|| currentSegment == "char"
-				|| currentSegment == "c"
-				|| currentSegment == "charname"
-				|| currentSegment == "char"
-				|| currentSegment == "charactername"
-				|| currentSegment == "for")
+				|| currentSegment == "c")
 		{
 			characterNameOverrideIndex = i + 1;
 		}
@@ -435,6 +439,19 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 		{
 			message.channel.send("_Purging combat..._");
 			recentInitList = [];
+			return;
+		}
+		else if (currentSegment == "help")
+		{
+			message.channel.send("Followed by a number stating you standard initiative modifier, this parameter is not required if a mod argument was used" +
+								 "\n**__Possible Parameters:__**" +
+								 "\n**character/char/c/:** followed by a charactername." +
+								 "\n**nosummary:** additional parameter to supress the normal initiative order summary." +
+								 "\n**mod:** followed by a number, set an initiative modifier for yourself (like for weapons), either included in the roll or modified on your previously rolled initiative." +
+								 "\n**insert:** instead of rolling for initiative, insert into the initiative at the given initiative number." +
+								 "\n**review/summary:** shows the current initiative order, no other arguments required, no initiative rolled." +
+								 "\n**clear/cleanup:** clears the current initiative order, no other arguments required, no initiative rolled." +
+								 "\n\n__Example:__*\\init 5 char Thug1 mod -2* (rolls initiative for Thug1, who has a initiative modifier of 5, wielding a weapon that modifies it with -2)");
 			return;
 		}
 		else
