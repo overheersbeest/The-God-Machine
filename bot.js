@@ -300,6 +300,15 @@ function rollCommand(message, commandSegments) {
 		return;
 	}
 
+	//percentage roll
+	if (commandSegments.length >= 2
+		&& commandSegments[1].toLowerCase() === '%')
+	{
+		const percentage = Math.floor(Math.random() * 100) + 1;
+		message.channel.send("result: " + percentage);
+		return;
+	}
+
 	let rollAmount = -1;
 	let rote = false;
 	let explodeThres = 10;
