@@ -266,6 +266,7 @@ function rollCommand(message, commandSegments) {
 
 	let rollAmount = -1;
 	let rote = false;
+	let advanced = false;
 	let explodeThres = 10;
 	let exceptionalThres = 5;
 	for (let i = 1; i < commandSegments.length; i++) {
@@ -284,6 +285,10 @@ function rollCommand(message, commandSegments) {
 		else if (segment === 'rote'
 			|| segment === 'r') {
 			rote = true;
+		}
+		else if (segment === 'adv'
+			|| segment === 'advanced') {
+			advanced = true;
 		}
 		else if (segment === '8a'
 			|| segment === '8again') {
@@ -318,8 +323,19 @@ function rollCommand(message, commandSegments) {
 		message.channel.send(flavor.getFlavourTextForPermissionError());
 	}
 	else {
-		let rollResults = roll(rollAmount, rote, explodeThres);
-		message.channel.send(getReturnMessage(rollAmount, rote, explodeThres, exceptionalThres, rollResults));
+		let rollResults1 = roll(rollAmount, rote, explodeThres);
+		let rollResults2 = null;
+		if (advanced) {
+			let advancedRollResults = roll(rollAmount, rote, explodeThres);
+			if (advancedRollResults.successes > rollResults1.successes) {
+				rollResults2 = rollResults1;
+				rollResults1 = advancedRollResults;
+			}
+			else {
+				rollResults2 = advancedRollResults;
+			}
+		}
+		message.channel.send(getReturnMessage(rollAmount, rote, explodeThres, exceptionalThres, rollResults1, rollResults2));
 	}
 }
 
@@ -513,8 +529,8 @@ function getInitSummaryString() {
 }
 
 function roll(rollAmount, rote, explodeThres) {
-	let successes = 0;
-	let diceValues = [];
+	let successesRolled = 0;
+	let diceValuesRolled = [];
 
 	if (rollAmount == 0
 		&& rote) {
@@ -526,11 +542,11 @@ function roll(rollAmount, rote, explodeThres) {
 		//chance die
 		const roll = Math.floor(Math.random() * 10) + 1;
 
-		if (roll == 10) successes = 1;
-		else if (roll == 1) successes = -1;
-		else successes = 0;
+		if (roll == 10) successesRolled = 1;
+		else if (roll == 1) successesRolled = -1;
+		else successesRolled = 0;
 
-		diceValues.push(roll);
+		diceValuesRolled.push(roll);
 	}
 	else {
 		//dice pool
@@ -540,7 +556,7 @@ function roll(rollAmount, rote, explodeThres) {
 			const roll = Math.floor(Math.random() * 10) + 1;
 
 			if (roll >= 8) {
-				successes++;
+				successesRolled++;
 				if (roll >= explodeThres) {
 					explodedDice++;
 				}
@@ -551,52 +567,72 @@ function roll(rollAmount, rote, explodeThres) {
 				explodedDice++;
 			}
 
-			diceValues.push(roll);
+			diceValuesRolled.push(roll);
 		}
 	}
 
-	return [rollAmount == 0, successes, diceValues];
+	let retVal = { chanceDie: rollAmount == 0, successes: successesRolled, diceValues: diceValuesRolled };
+	return retVal;
 }
 
-function getReturnMessage(rollAmount, rote, explodeThres, exceptionalThres, rollResults) {
-	const chanceDie = rollResults[0];
-	const successes = rollResults[1];
-	const diceValues = rollResults[2];
-
-	return getRollTypeString(chanceDie, rollAmount, rote, explodeThres, exceptionalThres) + " resulted in " + getResultText(successes) + " (" + getRollString(chanceDie, diceValues, rollAmount, rote, explodeThres) + ") " + flavor.getFlavourTextForRoll(chanceDie, successes, exceptionalThres);
+function getReturnMessage(rollAmount, rote, explodeThres, exceptionalThres, rollResults, discardedAdvancedRollResults)
+{
+	if (discardedAdvancedRollResults == null)
+	{
+		return getRollTypeString(rollResults.chanceDie, rollAmount, rote, explodeThres, exceptionalThres) + " resulted in " + getResultText(rollResults.successes, exceptionalThres)
+				+ " (" + getRollString(rollResults, rollAmount, rote, explodeThres) + ") "
+				+ flavor.getFlavourTextForRoll(rollResults.chanceDie, rollResults.successes, exceptionalThres);
+	}
+	else
+	{
+		return getRollTypeString(rollResults.chanceDie, rollAmount, rote, explodeThres, exceptionalThres) + " resulted in " + getResultText(rollResults.successes, exceptionalThres)
+				+ " (" + getRollString(rollResults, rollAmount, rote, explodeThres)
+				+ ")\nother roll resulted in " + discardedAdvancedRollResults.successes + " successes (" + getRollString(discardedAdvancedRollResults, rollAmount, rote, explodeThres) + ")\n"
+				+ flavor.getFlavourTextForRoll(rollResults.chanceDie, rollResults.successes, exceptionalThres);
+	}
 }
 
-function getRollString(chanceDie, diceValues, rollAmount, rote, explodeThres) {
+function getRollString(rollResults, rollAmount, rote, explodeThres)
+{
 	let rollsStr = "";
-	if (chanceDie) {
-		if (diceValues[0] == 10) {
-			rollsStr = "**" + diceValues[0] + "**";
+	if (rollResults.chanceDie)
+	{
+		if (rollResults.diceValues[0] == 10)
+		{
+			rollsStr = "**" + rollResults.diceValues[0] + "**";
 		}
-		else {
-			rollsStr = diceValues[0];
+		else
+		{
+			rollsStr = rollResults.diceValues[0];
 		}
 	}
-	else {
-		for (let d = 0; d < diceValues.length; d++) {
-			const roll = diceValues[d];
+	else
+	{
+		for (let d = 0; d < rollResults.diceValues.length; d++)
+		{
+			const roll = rollResults.diceValues[d];
 
 			//check for rollAmount > 0 in case of promoted chance die
 			if (d == rollAmount
-				&& rollAmount > 0) {
+				&& rollAmount > 0)
+			{
 				//we now start rolling exploded dice
 				rollsStr = rollsStr.substring(0, rollsStr.length - 2) + " + ";
 			}
 
-			if (roll >= 8) {
+			if (roll >= 8)
+			{
 				if (roll >= explodeThres) rollsStr += "__**" + roll + "**__, ";
 				else rollsStr += "**" + roll + "**, ";
 			}
 			else if (rote
-				&& d < rollAmount) {
+				&& d < rollAmount)
+			{
 				//re-roll due to rote
 				rollsStr += "__" + roll + "__, ";
 			}
-			else {
+			else
+			{
 				rollsStr += roll + ", ";
 			}
 		}
@@ -606,7 +642,8 @@ function getRollString(chanceDie, diceValues, rollAmount, rote, explodeThres) {
 	return rollsStr;
 }
 
-function getRollTypeString(chanceDie, rollAmount, rote, explodeThres, exceptionalThres) {
+function getRollTypeString(chanceDie, rollAmount, rote, explodeThres, exceptionalThres)
+{
 	if (chanceDie) {
 		return "chance die";
 	}
@@ -650,17 +687,22 @@ function getRollTypeString(chanceDie, rollAmount, rote, explodeThres, exceptiona
 	}
 }
 
-function getResultText(successes) {
-	if (successes >= 5) {
-		return "an exceptional success of " + successes;
+function getResultText(amountOfSuccesses, exceptionalThres)
+{
+	if (amountOfSuccesses >= exceptionalThres)
+	{
+		return "an exceptional success of " + amountOfSuccesses;
 	}
-	else if (successes > 0) {
-		return successes + " successes";
+	else if (amountOfSuccesses > 0)
+	{
+		return amountOfSuccesses + " successes";
 	}
-	else if (successes == 0) {
+	else if (amountOfSuccesses == 0)
+	{
 		return "a failure";
 	}
-	else {
+	else
+	{
 		return "a dramatic failure";
 	}
 }
