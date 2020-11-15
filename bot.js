@@ -91,6 +91,9 @@ client.on('message', message => {
 	else if (commandID == '/refuse') {
 		message.channel.send("_The pawn can refuse as much as it wants, it changes nothing._");
 	}
+	else if (commandID == '/pass') {
+		message.channel.send("_Apathy is the default state of being, to pass on an opportunity is to reject what little influence you have._");
+	}
 	else if (commandID == '/impossible') {
 		message.channel.send("_The pawn is correct, impossiblility is a constant._");
 	}
@@ -499,7 +502,7 @@ function rollInitiativeCommand(message, remainingCommandSegments) {
 				recentInitList = [];
 			}
 			recentInitStaleTime = new Date(Date.now() + recentInitResetTimeMinutes * 60000);
-			recentInitList[characterName] = { name: characterName, total: totalInitiative, unmodified: unmodifiedInitiative };
+			recentInitList[characterName] = { name: characterName, total: totalInitiative, unmodified: unmodifiedInitiative, tieBreaker: Math.random() };
 
 			replyStringSuffix += "\r\n" + getInitSummaryString();
 		}
@@ -515,7 +518,8 @@ function getInitSummaryString() {
 	}
 	else {
 		let retVal = "**Current combat consists of:**";
-		sortedList.sort((a, b) => b.total - a.total);
+		//as a tie breaker, use modifiers, and failing that, at random (typically through dice-offs), we don't need to calculate modifiers, we can just take the inverse unmodified values (same as calculating for both, but totals cancel each other out)
+		sortedList.sort((a, b) => (b.total + (0.0001 * (-b.unmodified + b.tieBreaker))) - (a.total + (0.0001 * (-a.unmodified + a.tieBreaker))));
 		for (let item of sortedList) {
 			if (item.total != item.unmodified) {
 				retVal += "\r\n" + item.total + ": " + item.name + " (" + (item.total - item.unmodified) + ")";
