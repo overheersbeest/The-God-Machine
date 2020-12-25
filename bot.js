@@ -25,7 +25,7 @@ client.on('ready', () => {
 
 function isMessageSentByAdmin(message) {
 	const guild = message.guild;
-	return (guild != undefined && message.author.id == guild.owner.id);
+	return (guild != undefined && message.author.id == guild.ownerID);
 }
 
 function channelCheck(message) {
@@ -612,36 +612,97 @@ function getRollString(rollResults, rollAmount, rote, explodeThres)
 	}
 	else
 	{
-		for (let d = 0; d < rollResults.diceValues.length; d++)
+		function getDigitSyntax(digit, isRoteReroll)
 		{
-			const roll = rollResults.diceValues[d];
-
-			//check for rollAmount > 0 in case of promoted chance die
-			if (d == rollAmount
-				&& rollAmount > 0)
+			if (digit >= 8)
 			{
-				//we now start rolling exploded dice
-				rollsStr = rollsStr.substring(0, rollsStr.length - 2) + " + ";
+				if (digit >= explodeThres) return "__**" + digit + "**__";
+				else return "**" + digit + "**";
 			}
-
-			if (roll >= 8)
-			{
-				if (roll >= explodeThres) rollsStr += "__**" + roll + "**__, ";
-				else rollsStr += "**" + roll + "**, ";
-			}
-			else if (rote
-				&& d < rollAmount)
+			else if (isRoteReroll)
 			{
 				//re-roll due to rote
-				rollsStr += "__" + roll + "__, ";
+				return "__" + digit + "__";
 			}
 			else
 			{
-				rollsStr += roll + ", ";
+				return String(digit);
 			}
 		}
+		if (rollResults.diceValues.length > 150)
+		{
+			rollsStr += "summary: ";
+			//we've rolled so many dice that we'll show a summary instead
+			let map = {}
+			//count how often each digit was rolled
+			for (let d = 0; d < rollResults.diceValues.length; d++)
+			{
+				const roll = rollResults.diceValues[d];
+				
+				if (!(roll in map))
+				{
+					map[roll] = {
+						rolls: 0,
+						rerolls: 0
+					};
+				}
 
-		rollsStr = rollsStr.substring(0, rollsStr.length - 2);
+				if (d > rollAmount)
+				{
+					map[roll].rerolls++;
+				}
+				else
+				{
+					map[roll].rolls++;
+				}
+	
+			}
+
+			//construct the string
+			for (let digit = 1; digit <= 10; digit++)
+			{
+				if (digit in map)
+				{
+					let roll = map[digit].rolls;
+					let reroll = map[digit].rerolls;
+					
+					rollsStr += getDigitSyntax(digit);
+					
+					if (reroll > 0) rollsStr += " (" + roll + "+" + reroll + ")";
+					else rollsStr +=  " (" + roll + ")";
+
+					rollsStr += ", ";
+				}
+			}
+
+			//remove the final ", "
+			rollsStr = rollsStr.substring(0, rollsStr.length - 2);
+		}
+		else
+		{
+			// we've rolled little enough that we'll show all of the results in sequence
+			for (let d = 0; d < rollResults.diceValues.length; d++)
+			{
+				const digit = rollResults.diceValues[d];
+	
+				//check for rollAmount > 0 in case of promoted chance die
+				if (d == rollAmount
+					&& rollAmount > 0)
+				{
+					//we now start rolling exploded dice
+					rollsStr = rollsStr.substring(0, rollsStr.length - 2) + " + ";
+				}
+				
+				const isRoteReroll = rote && d < rollAmount;
+				rollsStr += getDigitSyntax(digit, isRoteReroll);
+				
+				if (d != rollResults.diceValues.length - 1)
+				{
+					rollsStr += ", ";
+				}
+			}
+		}
+		
 	}
 	return rollsStr;
 }
