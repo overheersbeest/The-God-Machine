@@ -29,6 +29,11 @@ const flavorArray_ExceptionalSuccess = [
     "WARNING, efficiency too high to be an isolated incident, searching for rogue element...",
     "Outcome contradicting initial parameters, hidden variable unaccounted for."
 ];
+const flavorArray_ExceptionalSuccess_lowerThres = [
+    "Exploit detected, adding to utility database for future use.",
+    "Pride for undeserved achievements is a sign of a defective mind.",
+    "How typical to require crutches to achieve greatness."
+];
 
 const flavorArray_Error = [
     "Operation aborted, reality would shatter.",
@@ -63,7 +68,7 @@ module.exports = {
         return "_" + getRandomStringFromArray(flavorArray_PermissionError) + "_";
     },
 
-    getFlavourTextForRoll: function(isChanceDie, successes) {
+    getFlavourTextForRoll: function(isChanceDie, successes, exceptionalThres) {
         var text = "";
         if (isChanceDie)
         {
@@ -82,9 +87,16 @@ module.exports = {
         }
         else
         {
-            if (successes >= 5)
+            if (successes >= exceptionalThres)
             {
-                text = getRandomStringFromArray(flavorArray_ExceptionalSuccess);
+                if (successes < 5)
+                {
+                    text = getRandomStringFromArray(flavorArray_ExceptionalSuccess_lowerThres);
+                }
+                else
+                {
+                    text = getRandomStringFromArray(flavorArray_ExceptionalSuccess);
+                }
             }
             else if (successes > 0)
             {
