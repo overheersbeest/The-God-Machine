@@ -21,6 +21,57 @@ const client = new Discord.Client();
 
 client.on('ready', () => {
 	console.log('I am ready for operations');
+
+	client.api.applications(client.user.id).guilds('744991713436762174').commands.post({
+        data: {
+            name: "hello",
+            description: "Replies with Hello World!"
+        }
+    });
+
+    client.api.applications(client.user.id).guilds('744991713436762174').commands.post({
+        data: {
+            name: "echo",
+            description: "Echos your text as an embed!",
+
+            options: [
+                {
+                    name: "content",
+                    description: "Content of the embed",
+                    type: 3,
+                    required: true
+                }
+            ]
+        }
+    });
+
+    client.ws.on('INTERACTION_CREATE', async interaction => {
+        const command = interaction.data.name.toLowerCase();
+        const args = interaction.data.options;
+
+        if(command == 'hello') {
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: 4,
+                    data: {
+                        content: "Hello World!"
+                    }
+                }
+            });
+        }
+
+        if(command == "echo") {
+            const description = args.find(arg => arg.name.toLowerCase() == "content").value;
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: 4,
+                    data: {
+                        content: "echo" + description
+                    }
+                }
+            });
+        }
+    });
 });
 
 function isMessageSentByAdmin(message) {
