@@ -22,7 +22,13 @@ const client = new Discord.Client();
 client.on('ready', () => {
 	console.log('I am ready for operations');
 
-	//client.api.applications(client.user.id).guilds('744991713436762174').commands.post({
+	//let commands = client.api.applications(client.user.id).commands.get();
+	//commands.then(function (commands) {
+	//	commands.forEach (cmd => client.api.applications(client.user.id).commands(cmd.id).delete());
+	//});
+	
+
+	//client.api.applications(client.user.id).guilds('744991713436762174').commands.delete({
     //    data: {
     //        name: "hello",
     //        description: "Replies with Hello World!"
