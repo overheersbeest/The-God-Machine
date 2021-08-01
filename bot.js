@@ -4,6 +4,9 @@ const secrets = require('./secret');
 console.log('loading flavor text...');
 const flavor = require('./flavorText');
 
+console.log('loading extended action success calculator...');
+const extendActionAnalyzer = require('./extendedActionAnalysis');
+
 console.log('loading tarot cards...');
 const tarotCards = require('./TarotCards.json').cards;
 
@@ -178,6 +181,11 @@ client.on('message', message => {
 			message.channel.send("_Initiative is taken, not given._");
 		}
 	}
+	else if (commandID == '/extend'
+		|| commandID == '/extended') {
+		//test for now
+		extendedActionCommand(message, commandSegments);
+	}
 	else if (commandID == "/test") {
 		if (isMessageSentByAdmin(message)) {
 			message.channel.send("_I'm back, bitches_");
@@ -266,6 +274,73 @@ function tarotCommand(message) {
 	}
 	messageText += "\r\n_more info: <" + card.link + ">_";
 	message.channel.send(messageText);
+}
+
+function extendedActionCommand(message, commandSegments)
+{
+	if (commandSegments.length < 2) {
+		message.channel.send(flavor.getFlavourTextForParamError());
+		return;
+	}
+	//dicePool
+	let firstArgument = commandSegments[1].split(/\+|-/)
+	let basePool = parseInt(firstArgument[0])
+	let mod = 0
+	if (firstArgument.length > 1)
+	{
+		mod = parseInt(firstArgument[1])
+		if (commandSegments[1][firstArgument[0].length] === '-')
+		{
+			mod *= -1
+		}
+	}
+
+	//additional arguments
+	let rote = false
+	let explodeThres = 10
+	let fumbleMod = 0
+	let patientMod = 0
+	for (let i = 2; i < commandSegments.length; i++) {
+		const segment = commandSegments[i].toLowerCase();
+		if (segment === 'rote'
+			|| segment === 'r') {
+			rote = true;
+		}
+		else if (segment === '8a'
+			|| segment === '8again') {
+			explodeThres = 8;
+		}
+		else if (segment === '9a'
+			|| segment === '9again') {
+			explodeThres = 9;
+		}
+		else if (segment === 'no10'
+			|| segment === 'no10again'
+			|| segment === 'no10-again'
+			|| segment === 'no-10-again') {
+			explodeThres = 11;
+		}
+		else if (segment[0] === 'f')
+		{
+			fumbleMod = parseInt(segment.substring(1))
+		}
+		else if (segment === 'patient'
+				|| segment[0] === 'p') 
+		{
+			let Nr = parseInt(segment.substring(1))
+			if (!isNaN(Nr))
+			{
+				patientMod = Nr
+			}
+			else
+			{
+				patientMod = 2
+			}
+		}
+	}
+
+	let retVal = extendActionAnalyzer.getExtendedActionSuccessProbabilities(basePool, mod, explodeThres, rote, fumbleMod, patientMod)
+	message.channel.send(retVal);
 }
 
 function renameCommand(message, commandSegments) {
