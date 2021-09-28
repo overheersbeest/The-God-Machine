@@ -391,12 +391,30 @@ function rollCommand(message, commandSegments) {
 		return;
 	}
 
-	//percentage roll
-	if (commandSegments.length >= 2
-		&& commandSegments[1].toLowerCase() === '%') {
-		const percentage = Math.floor(Math.random() * 100) + 1;
-		message.channel.send("result: " + percentage);
-		return;
+	//custom rolls
+	if (commandSegments.length >= 2) {
+		//percentage roll
+		if (commandSegments[1].toLowerCase() === '%') {
+			const percentage = Math.floor(Math.random() * 100) + 1;
+			message.channel.send("result: " + percentage);
+			return;
+		}
+		//coin flip
+		if (commandSegments[1].toLowerCase() === 'coin') {
+			const heads = Math.random() < 0.5;
+			message.channel.send("result: " + (heads ? "Heads" : "Tails"));
+			return;
+		}
+		//custom dice
+		if (commandSegments[1].startsWith('d')) {
+			const diceType = commandSegments[1].substring(1);
+			if (!isNaN(diceType)) {
+				const nSides = parseInt(diceType);
+				const result = Math.floor(Math.random() * nSides) + 1;
+				message.channel.send("rolled a " + nSides + "-sided die: " + result);
+				return;
+			}
+		}
 	}
 
 	let rollAmount = -1;
