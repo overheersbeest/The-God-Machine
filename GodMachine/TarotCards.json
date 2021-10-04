@@ -1,0 +1,137 @@
+{
+	"cards":
+	[
+		{
+		"name": "The World",
+		"upright": "fulfillment, harmony, completion",
+		"reversed": "incompletion, no closure",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-world-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "Judgement",
+		"upright": "reflection, reckoning, awakening",
+		"reversed": "lack of self awareness, doubt, self loathing",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/judgement-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Sun",
+		"upright": "joy, success, celebration, positivity",
+		"reversed": "negativity, depression, sadness",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-sun-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Moon",
+		"upright": "unconscious, illusions, intuition",
+		"reversed": "confusion, fear, misinterpretation",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-moon-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Star",
+		"upright": "hope, faith, rejuvenation",
+		"reversed": "faithlessness, discouragement, insecurity",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-star-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Tower",
+		"upright": "sudden upheaval, broken pride, disaster",
+		"reversed": "disaster avoided, delayed disaster, fear of suffering",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-tower-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Devil",
+		"upright": "addiction, materialism, playfulness",
+		"reversed": "freedom, release, restoring control",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-devil-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "Temperance",
+		"upright": "middle path, patience, finding meaning",
+		"reversed": "extremes, excess, lack of balance",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/temperance-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "Death",
+		"upright": "end of cycle, beginnings, change, metamorphosis",
+		"reversed": "fear of change, holding on, stagnation, decay",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/death-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Hanged Man",
+		"upright": "sacrifice, release, martyrdom",
+		"reversed": "stalling, needless sacrifice, fear of sacrifice",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-hanged-man-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "Justice",
+		"upright": "cause and effect, clarity, truth",
+		"reversed": "dishonesty, unaccountability, unfairness",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/justice-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Wheel of Fortune",
+		"upright": "change, cycles, inevitable fate",
+		"reversed": "no control, clinging to control, bad luck",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-wheel-of-fortune-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Hermit",
+		"upright": "contemplation, search for truth, inner guidance",
+		"reversed": "loneliness, isolation, lost your way",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-hermit-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "Strength",
+		"upright": "inner strength, bravery, compassion, focus",
+		"reversed": "self doubt, weakness, insecurity",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/strength-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Chariot",
+		"upright": "direction, control, willpower",
+		"reversed": "lack of control, lack of direction, aggression",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-chariot-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Lovers",
+		"upright": "partnerships, duality, union",
+		"reversed": "loss of balance, one-sidedness, disharmony",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-lovers-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Hierophant",
+		"upright": "tradition, conformity, morality, ethics",
+		"reversed": "rebellion, subversiveness, new approaches",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-hierophant-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Emperor",
+		"upright": "authority, structure, control, fatherhood",
+		"reversed": "tyranny, rigidity, coldness",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-emperor-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Empress",
+		"upright": "motherhood, fertility, nature",
+		"reversed": "dependence, smothering, emptiness, nosiness",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-empress-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The High Priestess",
+		"upright": "intuitive, unconscious, inner voice",
+		"reversed": "lack of center, lost inner voice, repressed feelings",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-high-priestess-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Magician",
+		"upright": "willpower, desire, creation, manifestation",
+		"reversed": "trickery, illusions, out of touch",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-magician-meaning-major-arcana-tarot-card-meanings"
+		},
+		{
+		"name": "The Fool",
+		"upright": "innocence, new beginnings, free spirit",
+		"reversed": "recklessness, taken advantage of, inconsideration",
+		"link": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-fool-meaning-major-arcana-tarot-card-meanings"
+		}
+	]
+}  

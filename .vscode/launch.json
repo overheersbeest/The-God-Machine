@@ -5,10 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node",
+            "name": "Run Bot",
+            "type": "python",
             "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceFolder}\\bot.js"
+            "program": "GodMachine/bot.py",
+            "console": "integratedTerminal"
         }
     ]
 }
