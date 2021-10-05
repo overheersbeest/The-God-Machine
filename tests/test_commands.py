@@ -15,7 +15,7 @@ async def test_simpleReplies(command):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("command", ["/r 1", "/roll 0", "roll 10000", "roll 151", "/r 20 r", "/r 20 9a", "/r 20 8a", "/r 20 no10", "/r 20 adv", "/r 20 blessed", "/r 5 blighted", 
-									 "/r 20 3e", "/r 20 1e", "/r 20 r 9a 1e", "roll chance r", "roll coin", "roll %", "roll d12", "roll init 4", "roll chance", "roll"])
+									 "/r 20 3e", "/r 20 1e", "/r 20 r 9a 1e", "roll chance r", "roll coin", "roll %", "roll d12", "roll init 4", "roll chance", "roll", "roll tarot"])
 async def test_roll(command):
 	prompt = bot.CommandPrompt(command, "Test UserName", True, None)
 	for i in range(100):
@@ -40,6 +40,13 @@ async def test_tarot():
 		assert result != None
 
 @pytest.mark.asyncio
+async def test_coinflip():
+	prompt = bot.CommandPrompt("/coinflip", "Test UserName", True, None)
+	for i in range(100):
+		result = await bot.processCommand(prompt)
+		assert result != None
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(("command", "admin"), [("/corrupt", True), ("/corruption 0", True), ("/corruption 1", True), ("/corrupt 0.5", True), ("/corrupt .5", True), ("/corruption foo", True), ("/corrupt 2", True), ("/corrupt .5", False)])
 async def test_corruption(command, admin):
 	prompt_corrupt = bot.CommandPrompt(command, "Test UserName", admin, None)
@@ -53,12 +60,6 @@ async def test_corruption(command, admin):
 @pytest.mark.parametrize("command", ["/extend 4", "/extended 10", "/extend", "/extend 4+1", "/extend 4 r", "/extend 4 no10", "/extend 4 8a", "/extend 4 patient", "/extend 4 fumble", "/extend 4 p5", "/extend 4 f-2"])
 async def test_extend(command):
 	prompt = bot.CommandPrompt(command, "Test UserName", True, None)
-	result = await bot.processCommand(prompt)
-	assert result != None
-
-@pytest.mark.asyncio
-async def test_shutdown():
-	prompt = bot.CommandPrompt("/shutdown", "Test UserName", False, None)
 	result = await bot.processCommand(prompt)
 	assert result != None
 
@@ -82,3 +83,11 @@ async def test_shutdown(command, admin):
 	else:
 		result = await bot.processCommand(prompt)
 		assert result != None
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("command", ["/roll d12", "/roll 6d12", "/roll 0d12", "/roll 2d0", "/roll d12+8", "/roll d12-d4", "/roll d12+4d6-5", "/roll d12+4d6-5", "/roll d12+-4d6-5"])
+async def test_rolldice(command):
+	prompt = bot.CommandPrompt(command, "Test UserName", False, None)
+	result = await bot.processCommand(prompt)
+	print(result.message)
+	assert result != None

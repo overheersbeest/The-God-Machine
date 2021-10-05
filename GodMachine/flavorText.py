@@ -42,10 +42,15 @@ flavorArray_Error = [
 	"Anything that endeavors to break the rules, will find themselves broken instead.",
 	"Paradox condition detected, aborting operation to maintain world stability."
 ]
-flavorArray_ParamError = [
+flavorArray_MissingParamError = [
 	"The gears require more blood for lubrication.",
 	"Input does not fit expected format, operation aborted.",
 	"The ritual is not complete, not all components are in place."
+]
+flavorArray_WrongParamError = [
+	"Input '%s' does not fit expected format, operation aborted.",
+	"Malicious Injection detected: '%s'.",
+	"Protocols are not observed, element '%s' does not match parameters."
 ]
 flavorArray_PermissionError = [
 	"The subject is delusional with grandeur, yet pity will not be granted.",
@@ -56,8 +61,11 @@ flavorArray_PermissionError = [
 def getFlavourTextForError():
 	return "_" + random.choice(flavorArray_Error) + "_"
 
-def getFlavourTextForParamError():
-	return "_" + random.choice(flavorArray_ParamError) + "_"
+def getFlavourTextForMissingParamError():
+	return "_" + random.choice(flavorArray_MissingParamError) + "_"
+
+def getFlavourTextForWrongParamError():
+	return "_" + random.choice(flavorArray_WrongParamError) + "_"
 
 def getFlavourTextForPermissionError():
 	return "_" + random.choice(flavorArray_PermissionError) + "_"

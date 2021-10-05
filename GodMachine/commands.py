@@ -55,7 +55,7 @@ def tarotCommand() -> CommandResponse:
 
 def extendedActionCommand(commandSegments :list[str]) -> CommandResponse:
 	if len(commandSegments) < 2:
-		return CommandResponse(gcs(flavor.getFlavourTextForParamError()))
+		return CommandResponse(gcs(flavor.getFlavourTextForMissingParamError()))
 	
 	#dicePool
 	poolMatch = re.search("^(\d+)([\+-]\d+)?$", commandSegments[1])
@@ -110,6 +110,9 @@ class rollResult:
 	successes: int
 	diceValues: list[int]
 
+def coinFlipCommand() -> CommandResponse:
+	return CommandResponse(gcs("result: ") + gcs("Heads" if random.choice([True, False]) else "Tails", False))
+
 def rollCommand(commandSegments :list[str], authorName :str) -> CommandResponse:
 	#handle rolling for initiative
 	if (len(commandSegments) >= 3
@@ -126,16 +129,18 @@ def rollCommand(commandSegments :list[str], authorName :str) -> CommandResponse:
 			percentage = random.randint(1, 100)
 			return CommandResponse(gcs("result: ") + str(percentage))
 		
+		#tarot card draw
+		if (commandSegments[1].lower() == 'tarot') :
+			return tarotCommand()
+		
 		#coin flip
 		if (commandSegments[1].lower() == 'coin') :
-			return CommandResponse(gcs("result: ") + gcs("Heads" if random.choice([True, False]) else "Tails", False))
+			return coinFlipCommand()
 		
 		#custom dice
-		diceMatch = re.search("^d(\d+)$", commandSegments[1])
+		diceMatch = re.search("^(\d*)d(\d+)(([\+\-])([\+\d\-d]+))?$", commandSegments[1])
 		if diceMatch:
-			nSides = int(diceMatch.group(1))
-			result = random.randint(1, nSides)
-			return CommandResponse(gcs("rolled a " + str(nSides) + "-sided die: ") + str(result))
+			return parseDiceString(commandSegments[1], True, 0, "", "", True)
 			
 	#typical roll:
 	rollAmount = -1
@@ -182,7 +187,7 @@ def rollCommand(commandSegments :list[str], authorName :str) -> CommandResponse:
 
 	if rollAmount < 0:
 		#no second parameter given
-		return CommandResponse(gcs(flavor.getFlavourTextForParamError()))
+		return CommandResponse(gcs(flavor.getFlavourTextForMissingParamError()))
 	else:
 		rollResults1 = roll(rollAmount, rote, explodeThres)
 		rollResults2 = None
@@ -346,6 +351,58 @@ def getRollResultTypeText(amountOfSuccesses :int, exceptionalThres :int) -> str:
 	else:
 		return gcs("a ") + gcs("dramatic failure", False)
 
+def parseDiceString(queryString :str, plus :bool, resultSoFar :int, rollString :str, resultString :str, firstQuery :bool = False) -> CommandResponse:
+	print(queryString)
+	match = re.search("^((?P<number>\d*)|(?P<dice>\d*d\d+))(?P<remainder>(?P<sign>[\+\-])(?=[d\d])(?P<nextQuery>[\+\d\-d]+))?$", queryString)
+	if match:
+		numberString = match.groupdict()["number"]
+		diceString = match.groupdict()["dice"]
+		remainderString = match.groupdict()["remainder"]
+
+		if numberString != None:
+			#numbers are never the first segment of a dice roll, so no need to check for firstQuery
+			number = int(numberString)
+			if plus:
+				resultSoFar += number
+				rollString += "+" + str(number)
+				resultString += "+" + str(number)
+			else:
+				resultSoFar -= number
+				rollString += "-" + str(number)
+				resultString += "-" + str(number)
+		if diceString != None:
+			diceMatch = re.search("^(\d*)d(\d+)$", diceString)
+			if len(diceMatch.group(1)) == 0:
+				nDice = 1
+			else:
+				nDice = int(diceMatch.group(1))
+			nSides = int(diceMatch.group(2))
+			if nSides >= 1 and nDice >= 1:
+				rollResult = [random.randint(1, nSides) for i in range(nDice)]
+				if plus:
+					resultSoFar += sum(rollResult)
+				else:
+					resultSoFar -= sum(rollResult)
+				separatorStr = ("" if firstQuery else ("+" if plus else "-"))
+				rollString += separatorStr + str(nDice) + "d" + str(nSides)
+				resultString += separatorStr + "(" + (', '.join([str(x) for x in rollResult])) + ")"
+			else:
+				return CommandResponse(gcs(flavor.getFlavourTextForWrongParamError() % diceString))
+		if remainderString != None:
+			signString = match.groupdict()["sign"]
+			nextQueryString = match.groupdict()["nextQuery"]
+			if signString == '-':
+				return parseDiceString(nextQueryString, False, resultSoFar, rollString, resultString)
+			else:
+				return parseDiceString(nextQueryString, True, resultSoFar, rollString, resultString)
+		else:
+			if firstQuery:
+				return CommandResponse(gcs("rolled " + rollString + ": ") + str(resultSoFar))
+			else:
+				return CommandResponse(gcs("rolled " + rollString + ": ") + str(resultSoFar) + gcs(" (" + resultString + ")"))
+	else:
+		return CommandResponse(gcs(flavor.getFlavourTextForWrongParamError() % queryString))
+
 def rollInitiativeCommand(remainingCommandSegments :list[str], authorName :str):
 	global recentInitList
 	global recentInitStaleTime
@@ -373,13 +430,13 @@ def rollInitiativeCommand(remainingCommandSegments :list[str], authorName :str):
 			try:
 				modifier = int(currentSegment)
 			except ValueError:
-				return CommandResponse(gcs("invalid modifier parameter: ") + currentSegmentRaw)
+				return CommandResponse(gcs(flavor.getFlavourTextForWrongParamError()) % currentSegmentRaw)
 		
 		elif (i == insertOverrideIndex) :
 			try:
 				insertValue = int(currentSegment)
 			except ValueError:
-				return CommandResponse(gcs("invalid insert parameter: ") + currentSegmentRaw)
+				return CommandResponse(gcs(flavor.getFlavourTextForWrongParamError()) + currentSegmentRaw)
 		
 		elif (currentSegment == "character"
 			or currentSegment == "char"
@@ -429,14 +486,14 @@ def rollInitiativeCommand(remainingCommandSegments :list[str], authorName :str):
 				else:
 					return CommandResponse(gcs("initiative modifier is being set multiple times (from" + str(initiativeStat) + " to " + str(newInit)))
 			else:
-				return CommandResponse(gcs("unknown parameter: \'") + currentSegment + gcs("\'"))
+				return CommandResponse(gcs(flavor.getFlavourTextForWrongParamError()) % currentSegment)
 	
 	#parameter parsing done, process result
 	if (initiativeStat == None
 		and modifier == None
 		and insertValue == None) :
 		#no instruction parameters given
-		return CommandResponse(gcs(flavor.getFlavourTextForParamError()))
+		return CommandResponse(gcs(flavor.getFlavourTextForMissingParamError()))
 	else:
 		replyStringSuffix = ""
 		unmodifiedInitiative = 0
@@ -503,28 +560,42 @@ def getInitSummaryString() -> str :
 def setCorruptionCommand(commandSegments :list[str]) -> CommandResponse:
 	global corruptionFraction
 	if len(commandSegments) == 1:
-		return CommandResponse(gcs(flavor.getFlavourTextForParamError()))
+		return CommandResponse(gcs(flavor.getFlavourTextForMissingParamError()))
 	try:
 		newCorruption = float(commandSegments[1])
 	except:
-		return CommandResponse(gcs(flavor.getFlavourTextForParamError()))
+		return CommandResponse(gcs(flavor.getFlavourTextForWrongParamError() % commandSegments[1]))
 	if newCorruption < 0 or newCorruption > 1:
 		return CommandResponse(gcs("Corruption must be set to a value between 0 and 1, not ", False) + str(newCorruption))
 	else:
 		corruptionFraction = newCorruption
-		return CommandResponse(gcs("Corruption succesfully set to ", False) + str(newCorruption))
+		return CommandResponse(gcs("Corruption succesfully set to %.2f", False) % newCorruption)
 
 #abbreviation for 'Get Corrupted String', the function that is responsible for corrupting this bot's response messages
 def gcs(input :str, allowFullCorruption :bool = True) -> str :
 	output = [""] * len(input)
+	excludeNextCounter = 0
 	for i in range(len(input)):
 		c =input[i]
 		#stabilty is a value between 0 and 1, higher means more resistant to corruption
 		stability = random.random()
-		if c in corruptionImmuneCharacters:
+		if excludeNextCounter > 0:
+			stability = 1
+			excludeNextCounter -= 1
+		elif c in corruptionImmuneCharacters:
 			stability = 1
 		elif c in corruptionResistantCharacters:
 			stability **= 0.5
+		elif c == '%' and len(input) > i + 1 and input[i+1] in 'sdfxX.':
+			#preserve string formatting
+			if input[i+1] == '.':
+				roundedMatch = re.match("(.\d+f)", input[i+1:])
+				if roundedMatch:
+					stability = 1
+					excludeNextCounter = len(roundedMatch.group(1))
+			else:
+				stability = 1
+				excludeNextCounter = 1
 		
 		if allowFullCorruption and max(0, corruptionFraction - fullCorruptionStart) * (1 / (1 - fullCorruptionStart)) > stability:
 			output[i] = random.choice(corruptionCharacters) #full corruption, substitute a new character
@@ -544,7 +615,7 @@ async def shutdownCommand(guilds :list[discord.Guild]):
 
 async def cleanupCommand(commandSegments :list[str], channel :discord.TextChannel) -> CommandResponse:
 	if len(commandSegments) != 2:
-		return CommandResponse(gcs(flavor.getFlavourTextForParamError()))
+		return CommandResponse(gcs(flavor.getFlavourTextForMissingParamError()))
 	
 	#check how much history we should erase
 	LengthToEraseMinutes = 0
@@ -572,10 +643,12 @@ async def cleanupCommand(commandSegments :list[str], channel :discord.TextChanne
 	CutoffTime = datetime.datetime.now() - datetime.timedelta(minutes=LengthToEraseMinutes)
 	deletedCounter = 0
 	if channel != None:
-		messages = await channel.history(after=CutoffTime).flatten()
-		deletedCounter = len(messages)
-		channel.delete_messages(messages)
-		print("deleted " + deletedCounter + " sent by this bot over the last " + LengthToEraseMinutes + " minutes.")
+		if type(channel) == discord.TextChannel:
+			messages = await channel.history(after=CutoffTime).flatten()
+			deletedCounter = len(messages)
+			await channel.delete_messages(messages)
+			return CommandResponse("deleted " + str(deletedCounter) + " sent by this bot over the last " + str(LengthToEraseMinutes) + " minutes.")
+		else:
+			return CommandResponse("Cannot delete messages from DM channel")
 	else:
-		print("no messages deleted, no channel argument provided.")
-	return CommandResponse()
+		return CommandResponse("no messages deleted, no channel argument provided.")

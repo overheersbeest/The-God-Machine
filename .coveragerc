@@ -2,3 +2,4 @@
 omit =
 	env/*
 	GodMachine/secret.py
+	.vscode/*

@@ -11,10 +11,7 @@ def botFixture(event_loop):
 	return botClient
 
 @pytest.mark.asyncio
-async def test_shutdown(botFixture):
-	guild = discord.Guild(data={'id':0},state={})
-	channel = discord.TextChannel(state={}, guild=guild, data={})
-	member = discord.Member()
-	await dpytest.message("/shutdown", channel = channel, member = member)
+async def test_startup(botFixture):
+	await dpytest.message("/test")
 	assert dpytest.verify().message().contains().content("Ping:")
 """

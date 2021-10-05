@@ -27,8 +27,8 @@ def channelCheck(message :discord.Message) -> bool:
 	return (message.guild == None
 		or (isMessageSentByAdmin(message)
 			or message.channel.name == "test"
-			or (message.channel.parent != None
-				and message.channel.parent.name == "Role Playing")))
+			or (message.channel.category != None
+				and message.channel.category.name == "Role Playing")))
 
 @dataclass
 class CommandPrompt:
@@ -87,6 +87,9 @@ async def processCommand(command :CommandPrompt):
 	elif commandID == '/tarot':
 		response = commands.tarotCommand()
 	
+	elif commandID == '/coinflip':
+		response = commands.coinFlipCommand()
+
 	elif commandID == "/test":
 		if command.adminAuthor:
 			response = commands.CommandResponse(commands.gcs("_I'm back, bitches_"))
