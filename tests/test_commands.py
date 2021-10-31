@@ -48,7 +48,7 @@ async def test_coinflip():
 		assert result != None
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(("command", "admin"), [("/corrupt", True), ("/corruption 0", True), ("/corruption 1", True), ("/corrupt 0.5", True), ("/corrupt .5", True), ("/corruption foo", True), ("/corrupt 2", True), ("/corrupt .5", False)])
+@pytest.mark.parametrize(("command", "admin"), [("/corrupt", True), ("/corruption 1", True), ("/corrupt 0.5", True), ("/corrupt .5", True), ("/corruption foo", True), ("/corrupt 2", True), ("/corrupt .5", False), ("/corruption 0", True)])
 async def test_corruption(command, admin):
 	prompt_corrupt = bot.CommandPrompt(command, "Test UserName", admin, None)
 	result_corrupt = await bot.processCommand(prompt_corrupt)
@@ -73,6 +73,31 @@ async def test_cleanup(command, admin):
 	assert result != None
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("command", ["/roll d12", "/roll 6d12", "/roll 0d12", "/roll 2d0", "/roll d12+8", "/roll d12-d4", "/roll d12+4d6-5", "/roll d12+4d6-5", "/roll d12+-4d6-5"])
+async def test_rolldice(command):
+	prompt = bot.CommandPrompt(command, "Test UserName", False, None)
+	result = await bot.processCommand(prompt)
+	assert result != None
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("str", "echo"), [("normal", "normal"), ("with space", "with space"), (" leading space", "leading space"), ("trailing space ", "trailing space"), ("break\r\nline ", "break\r\nline"), ("", ""), (" ", "")])
+async def test_echo(str, echo):
+	prompt = bot.CommandPrompt("/echo " + str, "Test UserName", False, None)
+	result = await bot.processCommand(prompt)
+	assert result.message == echo
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("str", "echo"), [("normal", "normal"), ("with space", "with space"), (" leading space", "leading space"), ("trailing space ", "trailing space"), ("break\r\nline ", "break\r\nline"), ("", ""), (" ", "")])
+async def test_echoSoft(str, echo):
+	prompt = bot.CommandPrompt("/echosoft " + str, "Test UserName", False, None)
+	result = await bot.processCommand(prompt)
+	assert result.message == echo
+
+
+
+
+########## KEEP LAST ##########
+@pytest.mark.asyncio
 @pytest.mark.parametrize(("command", "admin"), [("/shutdown", False), ("/shutdown", True)])
 async def test_shutdown(command, admin):
 	prompt = bot.CommandPrompt(command, "Test UserName", admin, None)
@@ -84,11 +109,3 @@ async def test_shutdown(command, admin):
 	else:
 		result = await bot.processCommand(prompt)
 		assert result != None
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("command", ["/roll d12", "/roll 6d12", "/roll 0d12", "/roll 2d0", "/roll d12+8", "/roll d12-d4", "/roll d12+4d6-5", "/roll d12+4d6-5", "/roll d12+-4d6-5"])
-async def test_rolldice(command):
-	prompt = bot.CommandPrompt(command, "Test UserName", False, None)
-	result = await bot.processCommand(prompt)
-	print(result.message)
-	assert result != None

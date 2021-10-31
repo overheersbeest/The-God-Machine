@@ -51,7 +51,7 @@ class MyClient(discord.Client):
 		if (len(command) > 0 and not message.author.bot and channelCheck(message)):
 			prompt = CommandPrompt(command, message.author.display_name, isMessageSentByAdmin(message), message.channel)
 			response = await processCommand(prompt)
-			if response != None:
+			if response != None and len(response.message):
 				await message.channel.send(response.message)
 			if clientShouldShutdown:
 				await self.shutdownGracefully()
@@ -131,6 +131,11 @@ async def processCommand(command :CommandPrompt):
 			response = commands.setCorruptionCommand(commandSegments)
 		else:
 			response = commands.CommandResponse(commands.gcs(flavor.getFlavourTextForPermissionError()))
+	
+	elif (commandID == '/echo'):
+		response = commands.CommandResponse(commands.gcs(command.command[len(commandID)+1:].strip()))
+	elif (commandID == '/echosoft'):
+		response = commands.CommandResponse(commands.gcs(command.command[len(commandID)+1:].strip(), False))
 	
 	elif commandID == "/shutdown":
 		if command.adminAuthor:

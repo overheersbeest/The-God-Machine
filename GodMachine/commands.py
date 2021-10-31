@@ -30,6 +30,8 @@ corruptionResistantCharacters = ' ():,'
 corruptionImmuneCharacters = '>_*\r\n\t'
 corruptionFraction = 0.0 # 0 - 1, 0 = no corruption, 1 = full corruption
 corruptionCharacters = string.ascii_letters + string.digits + ' !"#$%&\'()+,-./:;<=?@[\]^{|}~'
+corruptionSubstitutions = ["a@4", "il|1j!", "e3", "&8", "t7", "0o", "yv", "s5$", "({[\\", ")}]/", ";:", ".,*'`", "n^", "~-+_"]
+allCorruptionSubstitutionChars = "".join(corruptionSubstitutions)
 
 #																   _	   
 #					  ___ ___  _ __ ___  _ __ ___   __ _ _ __   __| |___ _ 
@@ -603,8 +605,16 @@ def gcs(input :str, allowFullCorruption :bool = True) -> str :
 		
 		if allowFullCorruption and max(0, corruptionFraction - fullCorruptionStart) * (1 / (1 - fullCorruptionStart)) > stability:
 			output[i] = random.choice(corruptionCharacters) #full corruption, substitute a new character
-		elif min(corruptionFraction, 0.75) > stability: #we cap the corruption so as to not turn this into a guaranteed swapcase at high corruption levels
-			output[i] = c.swapcase() #corrupted but not yet fully corrupted, swap case
+		elif corruptionFraction > stability: #corruption
+			if c in allCorruptionSubstitutionChars:
+				for subs in corruptionSubstitutions:
+					if c.lower() in subs:
+						#substitute c for one of it's substitutions (including itself, to not always guarantee it will change, as well as allow for case swapping later)
+						c = random.choice(subs)
+
+			if min(corruptionFraction, 0.75) > stability: #we cap the corruption for case swapping so as to not turn this into a guaranteed swapcase at high corruption levels
+				c = c.swapcase() #corrupted but not yet fully corrupted, swap case
+			output[i] = c
 		else:
 			output[i] = c #corruption not high enough, character is unaltered
 			
