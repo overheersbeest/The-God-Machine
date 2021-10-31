@@ -15,7 +15,8 @@ async def test_simpleReplies(command):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("command", ["/r 1", "/roll 0", "roll 10000", "roll 151", "/r 20 r", "/r 20 9a", "/r 20 8a", "/r 20 no10", "/r 20 adv", "/r 20 blessed", "/r 5 blighted", 
-									 "/r 20 3e", "/r 20 1e", "/r 20 r 9a 1e", "roll chance r", "roll coin", "roll %", "roll d12", "roll init 4", "roll chance", "roll", "roll tarot"])
+									 "/r 20 3e", "/r 20 1e", "/r 20 r 9a 1e", "roll chance r", "roll coin", "roll %", "roll d12", "roll init 4", "roll chance", "roll", "roll tarot",
+									 "roll letter"])
 async def test_roll(command):
 	prompt = bot.CommandPrompt(command, "Test UserName", True, None)
 	for i in range(100):

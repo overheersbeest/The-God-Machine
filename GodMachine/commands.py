@@ -133,6 +133,11 @@ def rollCommand(commandSegments :list[str], authorName :str) -> CommandResponse:
 		if (commandSegments[1].lower() == 'tarot') :
 			return tarotCommand()
 		
+		#tarot card draw
+		if (commandSegments[1].lower() == 'alphabet' or
+			commandSegments[1].lower() == 'letter') :
+			return CommandResponse(gcs("result: ") + random.choice(string.ascii_letters))
+		
 		#coin flip
 		if (commandSegments[1].lower() == 'coin') :
 			return coinFlipCommand()
@@ -352,7 +357,6 @@ def getRollResultTypeText(amountOfSuccesses :int, exceptionalThres :int) -> str:
 		return gcs("a ") + gcs("dramatic failure", False)
 
 def parseDiceString(queryString :str, plus :bool, resultSoFar :int, rollString :str, resultString :str, firstQuery :bool = False) -> CommandResponse:
-	print(queryString)
 	match = re.search("^((?P<number>\d*)|(?P<dice>\d*d\d+))(?P<remainder>(?P<sign>[\+\-])(?=[d\d])(?P<nextQuery>[\+\d\-d]+))?$", queryString)
 	if match:
 		numberString = match.groupdict()["number"]
@@ -546,7 +550,7 @@ def getInitSummaryString() -> str :
 	else:
 		retVal = gcs("**Current combat consists of:**")
 		def initSort(init):
-			return init["total"] + (0.0001 * (-init["unmodified"] + init["tieBreaker"]))
+			return -(init["total"] + (0.0001 * (-init["unmodified"] + init["tieBreaker"])))
 		#as a tie breaker, use modifiers, and failing that, at random (typically through dice-offs), we don't need to calculate modifiers, we can just take the inverse unmodified values (same as calculating for both, but totals cancel each other out)
 		sortedList.sort(key=initSort)
 		for item in sortedList:

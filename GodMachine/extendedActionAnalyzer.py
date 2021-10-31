@@ -222,6 +222,6 @@ def getExtendedActionSuccessProbabilitiesString(basePool :int, poolModifier :int
 		retVal += ", cumulative " + str(fumbleModifier) + " on failed rolls"
 	retVal += ")\n"
 
-	for i in range(len(result.successes)):
-		retVal += str(i) + ": %.2f" % (sum(result.successes[:i]) * 100) + ("%\n" if (i < len(result.successes) - 1) else "%")
+	for i in range(1, len(result.successes)):
+		retVal += str(i) + ": %.2f" % ((1 - sum(result.successes[:i])) * 100) + ("%\n" if (i < len(result.successes) - 1) else "%")
 	return retVal
