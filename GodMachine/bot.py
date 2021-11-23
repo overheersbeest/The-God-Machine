@@ -11,6 +11,7 @@ print('loading commands...')
 import commands
 
 from dataclasses import dataclass
+import random
 import re
 
 print('initializing discord client...')
@@ -90,6 +91,13 @@ async def processCommand(command :CommandPrompt):
 	elif commandID == '/coinflip':
 		response = commands.coinFlipCommand()
 
+	if (commandID == '/choose'
+		or commandID == '/choice'):
+		if len(commandSegments) >= 2:
+			response = commands.CommandResponse(commands.gcs("Result: " + random.choice(commandSegments[1:])))
+		else :
+			response = commands.CommandResponse(commands.gcs(flavor.getFlavourTextForMissingParamError()))
+	
 	elif commandID == "/test":
 		if command.adminAuthor:
 			response = commands.CommandResponse(commands.gcs("_I'm back, bitches_"))
