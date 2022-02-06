@@ -78,7 +78,7 @@ async def processCommand(command :CommandPrompt):
 		or commandID == '/r'):
 		response = commands.rollCommand(commandSegments, command.authorName)
 	
-	if (commandID == '/init'
+	elif (commandID == '/init'
 		or commandID == '/initiative'):
 		if len(commandSegments) >= 2:
 			response =  commands.rollInitiativeCommand(commandSegments[1:], command.authorName)
@@ -91,7 +91,7 @@ async def processCommand(command :CommandPrompt):
 	elif commandID == '/coinflip':
 		response = commands.coinFlipCommand()
 
-	if (commandID == '/choose'
+	elif (commandID == '/choose'
 		or commandID == '/choice'):
 		if len(commandSegments) >= 2:
 			response = commands.CommandResponse(commands.gcs("Result: " + random.choice(commandSegments[1:])))
@@ -155,6 +155,10 @@ async def processCommand(command :CommandPrompt):
 		else:
 			response = commands.CommandResponse(commands.gcs("_Threat detected, defense mechanisms active._"))
 	
+	else:
+		#custom responses
+		response = commands.handleCustomCommands(commandSegments)
+
 	return response
 
 if __name__ == "__main__":

@@ -93,6 +93,19 @@ async def test_echoSoft(str, echo):
 	result = await bot.processCommand(prompt)
 	assert result.message == echo
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("command", ["/choose a b", "/choice a", "/choose"])
+async def test_choose(command):
+	prompt = bot.CommandPrompt(command, "Test UserName", False, None)
+	result = await bot.processCommand(prompt)
+	assert result != None
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("command", "response"), [("/customCommandTest", "root response"), ("/customCommandTest param1a", "1a response"), ("/customCommandTest param1a derp", "1a default"), ("/customCommandTest param1a param2b", "1a 2b response"), ("/customCommandTest param1b", "1b default: param1b")])
+async def test_customCommands(command, response):
+	prompt = bot.CommandPrompt(command, "Test UserName", False, None)
+	result = await bot.processCommand(prompt)
+	assert result.message == response
 
 
 

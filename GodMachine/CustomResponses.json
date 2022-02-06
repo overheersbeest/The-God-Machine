@@ -1,0 +1,201 @@
+{
+	"customCommands":
+	[
+		{
+			"segment": "/customCommandTest",
+			"response": "root response",
+			"paramTree":
+			[
+				{
+					"segment": "param1a",
+					"response": "1a response",
+					"default": "1a default",
+					"paramTree":
+					[
+						{
+							"segment": "param2a",
+							"response": "1a 2a response",
+							"default": "1a 2a default"
+						},
+						{
+							"segment": "param2b",
+							"response": "1a 2b response",
+							"default": "1a 2b default"
+						}
+					]
+				},
+				{
+					"segment": "param1b",
+					"default": "1b default: <cmdSeg:1>",
+					"paramTree":
+					[
+						{
+							"segment": "param2a",
+							"response": "1b 2a response",
+							"default": "1b 2a default"
+						},
+						{
+							"segment": "param2b",
+							"response": "1b 2b response",
+							"default": "1b 2b default"
+						}
+					]
+				}
+			]
+		},
+		{
+			"segment": "/query",
+			"response": "ERROR: insufficient parameters provided",
+			"default": "ERROR: component not found '<cmdSeg:1>'",
+			"paramTree":
+			[
+				{
+					"segment": "Mr_Wednesday",
+					"response": "ERROR: component found, but no query provided",
+					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
+					"paramTree":
+					[
+						{
+							"segment": "status",
+							"default": "<cmdSeg:1> <cmdSeg:2>: defective, reclaimed"
+						},
+						{
+							"segment": "rootposition",
+							"default": "<cmdSeg:1> <cmdSeg:2>: x-3.21, y0.43"
+						}
+					]
+				},
+
+				{
+					"segment": "Imminent_Ruin",
+					"response": "ERROR: component found, but no query provided",
+					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
+					"paramTree":
+					[
+						{
+							"segment": "status",
+							"default": "<cmdSeg:1> <cmdSeg:2>: active"
+						},
+						{
+							"segment": "rootposition",
+							"default": "<cmdSeg:1> <cmdSeg:2>: x0.0, y0.0"
+						}
+					]
+				},
+				{
+					"segment": "Looming_Annihilation",
+					"response": "ERROR: component found, but no query provided",
+					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
+					"paramTree":
+					[
+						{
+							"segment": "status",
+							"default": "<cmdSeg:1> <cmdSeg:2>: active"
+						},
+						{
+							"segment": "rootposition",
+							"default": "<cmdSeg:1> <cmdSeg:2>: x0.0, y0.0"
+						}
+					]
+				},
+				{
+					"segment": "Approaching_Downfall",
+					"response": "ERROR: component found, but no query provided",
+					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
+					"paramTree":
+					[
+						{
+							"segment": "status",
+							"default": "<cmdSeg:1> <cmdSeg:2>: active"
+						},
+						{
+							"segment": "rootposition",
+							"default": "<cmdSeg:1> <cmdSeg:2>: x0.0, y0.0"
+						}
+					]
+				},
+				{
+					"segment": "Foretold_Extinction",
+					"response": "ERROR: component found, but no query provided",
+					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
+					"paramTree":
+					[
+						{
+							"segment": "status",
+							"default": "on standby"
+						},
+						{
+							"segment": "rootposition",
+							"default": "<cmdSeg:1> <cmdSeg:2>: x0.0, y0.0"
+						}
+					]
+				},
+				{
+					"segment": "Forthcoming_Doom",
+					"response": "ERROR: component found, but no query provided",
+					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
+					"paramTree":
+					[
+						{
+							"segment": "status",
+							"default": "<cmdSeg:1> <cmdSeg:2>: on standby"
+						},
+						{
+							"segment": "rootposition",
+							"default": "<cmdSeg:1> <cmdSeg:2>: x0.0, y0.0"
+						}
+					]
+				},
+
+				{
+					"segment": "Blackstone",
+					"response": "ERROR: component found, but no query provided",
+					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
+					"paramTree":
+					[
+						{
+							"segment": "status",
+							"default": "<cmdSeg:1> <cmdSeg:2>: active, last login 38 days ago."
+						},
+						{
+							"segment": "rootposition",
+							"default": "<cmdSeg:1> <cmdSeg:2>: x-1.91, y-0.03"
+						}
+					]
+				},
+				{
+					"segment": "Anarchist",
+					"response": "ERROR: component found, but no query provided",
+					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
+					"paramTree":
+					[
+						{
+							"segment": "status",
+							"default": "<cmdSeg:1> <cmdSeg:2>: defective, flagged for reclamation"
+						},
+						{
+							"segment": "rootposition",
+							"default": "<cmdSeg:1> <cmdSeg:2>: x2.21, y0.95"
+						}
+					]
+				},
+				{
+					"segment": "Chapman",
+					"response": "ERROR: component found, but no query provided",
+					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
+					"paramTree":
+					[
+						{
+							"segment": "status",
+							"default": "<cmdSeg:1> <cmdSeg:2>: deprecated, flagged for reclamation"
+						},
+						{
+							"segment": "rootposition",
+							"default": "<cmdSeg:1> <cmdSeg:2>: x-2.56, y0.19"
+						}
+					]
+				}
+			]
+		}
+	]
+}  

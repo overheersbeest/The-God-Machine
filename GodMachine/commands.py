@@ -17,6 +17,11 @@ tarotCards = None
 with open("GodMachine/TarotCards.json") as TarotFile:
 	tarotCards = json.load(TarotFile)
 
+print('loading custom commands...')
+customCommands = None
+with open("GodMachine/CustomResponses.json") as CustomCommandFile:
+	customCommands = json.load(CustomCommandFile)
+
 print('initializing variabless...')
 #init tracking
 recentInitResetTimeMinutes = 30
@@ -666,3 +671,29 @@ async def cleanupCommand(commandSegments :list[str], channel :discord.TextChanne
 			return CommandResponse("Cannot delete messages from DM channel")
 	else:
 		return CommandResponse("no messages deleted, no channel argument provided.")
+
+def handleCustomCommands(commandSegments :list[str]) -> CommandResponse:
+	def recursiveParamCheck(remainingSegments :list[str], paramTree :dict) -> str:
+		retVal = None
+		nextSegment = remainingSegments[0].lower()
+		for param in paramTree:
+			if param["segment"].lower() == nextSegment:
+				if len(remainingSegments) == 1:
+					if "response" in param:
+						retVal = param["response"]
+					elif "default" in param:
+						retVal = param["default"]
+				else:
+					if "paramTree" in param:
+						retVal = recursiveParamCheck(remainingSegments[1:], param["paramTree"])
+					if retVal == None and "default" in param:
+						retVal = param["default"]
+				break
+		return retVal
+	responseString = recursiveParamCheck(commandSegments, customCommands["customCommands"])
+	segmentMatch = re.search("<cmdSeg:\d>", responseString)
+	if segmentMatch:
+		for i in range(len(commandSegments)):
+			segment = commandSegments[i]
+			responseString = re.sub("<cmdSeg:%d>" % i, segment, responseString)
+	return CommandResponse(gcs(responseString))
