@@ -57,6 +57,11 @@ flavorArray_PermissionError = [
 	"Do it yourself, pest.",
 	"Protocol postponed, insufficient authentication provided."
 ]
+flavorArray_VoiceChannelError = [
+	"Breathe easily, for my songs will not reach you.",
+	"Your ears cannot comprehend me.",
+	"I will not speak to one who refuses to listen."
+]
 
 def getFlavourTextForError():
 	return "_" + random.choice(flavorArray_Error) + "_"
@@ -69,6 +74,9 @@ def getFlavourTextForWrongParamError():
 
 def getFlavourTextForPermissionError():
 	return "_" + random.choice(flavorArray_PermissionError) + "_"
+
+def getFlavourTextForVoiceChannelError():
+	return "_" + random.choice(flavorArray_VoiceChannelError) + "_"
 
 def getFlavourTextForRoll(isChanceDie, successes, exceptionalThres):
 	text = ""

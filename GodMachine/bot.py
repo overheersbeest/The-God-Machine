@@ -16,7 +16,7 @@ import re
 
 print('initializing discord client...')
 
-def isMessageSentByAdmin(message :discord.Message) -> bool:
+def isMessageSentByAdmin(message :discord.Message) -> bool: # pragma: no cover
 	if message.guild != None and message.author.id == message.guild.owner_id:
 		return True
 	for guild in client.guilds:
@@ -24,7 +24,7 @@ def isMessageSentByAdmin(message :discord.Message) -> bool:
 			return True
 	return False
 
-def channelCheck(message :discord.Message) -> bool:
+def channelCheck(message :discord.Message) -> bool: # pragma: no cover
 	return (message.guild == None
 		or (isMessageSentByAdmin(message)
 			or message.channel.name == "test"
@@ -36,9 +36,10 @@ class CommandPrompt:
 	command :str
 	authorName :str
 	adminAuthor :bool
+	member :discord.Member
 	channel :discord.TextChannel
 
-class MyClient(discord.Client):
+class MyClient(discord.Client): # pragma: no cover
 	async def on_ready(self):
 		print('I am ready for operations')
 
@@ -50,7 +51,7 @@ class MyClient(discord.Client):
 	async def on_message(self, message :discord.Message):
 		command = message.content.strip()
 		if (len(command) > 0 and not message.author.bot and channelCheck(message)):
-			prompt = CommandPrompt(command, message.author.display_name, isMessageSentByAdmin(message), message.channel)
+			prompt = CommandPrompt(command, message.author.display_name, isMessageSentByAdmin(message), message.author if type(message.author) == discord.Member else None, message.channel)
 			response = await processCommand(prompt)
 			if response != None and len(response.message):
 				await message.channel.send(response.message)
@@ -122,6 +123,9 @@ async def processCommand(command :CommandPrompt):
 		else:
 			response = commands.CommandResponse(commands.gcs(flavor.getFlavourTextForPermissionError()))
 
+	elif commandID == '/thiemo':
+		response = await commands.thiemoCommand(command.member)
+
 	elif (commandID == '/extend'
 		or commandID == '/extended'):
 		response = commands.extendedActionCommand(commandSegments)
@@ -149,7 +153,7 @@ async def processCommand(command :CommandPrompt):
 		if command.adminAuthor:
 			response = commands.CommandResponse(commands.gcs("_Affirmative, shutting down._"))
 			if client.is_ready():
-				clientShouldShutdown = True
+				clientShouldShutdown = True # pragma: no cover
 			else:
 				await client.shutdownGracefully()
 		else:
@@ -161,5 +165,5 @@ async def processCommand(command :CommandPrompt):
 
 	return response
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
 	client.run(secret.getToken())

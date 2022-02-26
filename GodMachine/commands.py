@@ -1,10 +1,12 @@
 print('loading standard modules...')
+from asyncio import sleep
 from dataclasses import dataclass
 import datetime
 import json
 import random
 import re
 import string
+import os
 
 import discord
 import flavorText as flavor
@@ -37,6 +39,8 @@ corruptionFraction = 0.0 # 0 - 1, 0 = no corruption, 1 = full corruption
 corruptionCharacters = string.ascii_letters + string.digits + ' !"#$%&\'()+,-./:;<=?@[\]^{|}~'
 corruptionSubstitutions = ["a@4", "il|1j!", "e3", "&8", "t7", "0o", "yv", "s5$", "({[\\", ")}]/", ";:", ".,*'`", "n^", "~-+_"]
 allCorruptionSubstitutionChars = "".join(corruptionSubstitutions)
+#thiemo
+lastThiemoSoundPath = None
 
 #																   _	   
 #					  ___ ___  _ __ ___  _ __ ___   __ _ _ __   __| |___ _ 
@@ -627,7 +631,7 @@ def gcs(input :str, allowFullCorruption :bool = True) -> str :
 
 async def shutdownCommand(guilds :list[discord.Guild]):
 	for guild in guilds:
-		for member in guild.members:
+		for member in guild.members: # pragma: no cover
 			if (member != None
 				and member.id in renameDict):
 				await member.edit(nick = renameDict[member.id].original)
@@ -661,16 +665,16 @@ async def cleanupCommand(commandSegments :list[str], channel :discord.TextChanne
 	#do the actual erasing
 	CutoffTime = datetime.datetime.now() - datetime.timedelta(minutes=LengthToEraseMinutes)
 	deletedCounter = 0
-	if channel != None:
+	if channel != None: # pragma: no cover
 		if type(channel) == discord.TextChannel:
 			messages = await channel.history(after=CutoffTime).flatten()
 			deletedCounter = len(messages)
 			await channel.delete_messages(messages)
-			return CommandResponse("deleted " + str(deletedCounter) + " sent by this bot over the last " + str(LengthToEraseMinutes) + " minutes.")
+			return CommandResponse(gcs("deleted ") + str(deletedCounter) + gcs(" sent by this bot over the last ") + str(LengthToEraseMinutes) + gcs(" minutes."))
 		else:
-			return CommandResponse("Cannot delete messages from DM channel")
+			return CommandResponse(gcs("Cannot delete messages from DM channel"))
 	else:
-		return CommandResponse("no messages deleted, no channel argument provided.")
+		return CommandResponse(gcs("no messages deleted, no channel argument provided."))
 
 def handleCustomCommands(commandSegments :list[str]) -> CommandResponse:
 	def recursiveParamCheck(remainingSegments :list[str], paramTree :dict) -> str:
@@ -700,3 +704,35 @@ def handleCustomCommands(commandSegments :list[str]) -> CommandResponse:
 		return CommandResponse(gcs(responseString))
 	else:
 		return None
+
+async def thiemoCommand(author :discord.Member) -> CommandResponse:
+	global lastThiemoSoundPath
+	# Gets voice channel of message author
+	voice_channel = None
+	if author != None and author.voice != None:
+		voice_channel = author.voice.channel # pragma: no cover
+	if voice_channel != None: # pragma: no cover
+		soundFilePaths = []
+		for file in os.listdir("GodMachine/ThiemoSounds"):
+			path = os.path.join("GodMachine/ThiemoSounds", file)
+			if path.endswith(".mp3") and path != lastThiemoSoundPath:
+				soundFilePaths.append(path)
+		if len(soundFilePaths) > 0:
+			try:
+				vc = await voice_channel.connect()
+				lastThiemoSoundPath = random.choice(soundFilePaths)
+				vc.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/bin/ffmpeg.exe", source=lastThiemoSoundPath))
+				#buffer
+				vc.pause()
+				await sleep(.5)
+				vc.resume()
+				# Sleep while audio is playing.
+				while vc.is_playing():
+					await sleep(.1)
+				await sleep(.5)
+			except discord.errors.ClientException:
+				return CommandResponse(gcs("A clientException occured, does the host have ffmpeg installed in 'C:/ffmpeg/bin/ffmpeg.exe'?"))
+			finally:
+				await vc.disconnect()
+	else:
+		return CommandResponse(gcs(flavor.getFlavourTextForVoiceChannelError()))
