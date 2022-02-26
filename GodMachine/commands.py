@@ -677,23 +677,26 @@ def handleCustomCommands(commandSegments :list[str]) -> CommandResponse:
 		retVal = None
 		nextSegment = remainingSegments[0].lower()
 		for param in paramTree:
-			if param["segment"].lower() == nextSegment:
+			if param.lower() == nextSegment:
 				if len(remainingSegments) == 1:
-					if "response" in param:
-						retVal = param["response"]
-					elif "default" in param:
-						retVal = param["default"]
+					if "response" in paramTree[param]:
+						retVal = paramTree[param]["response"]
+					elif "default" in paramTree[param]:
+						retVal = paramTree[param]["default"]
 				else:
-					if "paramTree" in param:
-						retVal = recursiveParamCheck(remainingSegments[1:], param["paramTree"])
-					if retVal == None and "default" in param:
-						retVal = param["default"]
+					if "paramTree" in paramTree[param]:
+						retVal = recursiveParamCheck(remainingSegments[1:], paramTree[param]["paramTree"])
+					if retVal == None and "default" in paramTree[param]:
+						retVal = paramTree[param]["default"]
 				break
 		return retVal
 	responseString = recursiveParamCheck(commandSegments, customCommands["customCommands"])
-	segmentMatch = re.search("<cmdSeg:\d>", responseString)
-	if segmentMatch:
-		for i in range(len(commandSegments)):
-			segment = commandSegments[i]
-			responseString = re.sub("<cmdSeg:%d>" % i, segment, responseString)
-	return CommandResponse(gcs(responseString))
+	if responseString:
+		segmentMatch = re.search("<cmdSeg:\d>", responseString)
+		if segmentMatch:
+			for i in range(len(commandSegments)):
+				segment = commandSegments[i]
+				responseString = re.sub("<cmdSeg:%d>" % i, segment, responseString)
+		return CommandResponse(gcs(responseString))
+	else:
+		return None

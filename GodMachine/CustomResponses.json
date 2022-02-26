@@ -1,201 +1,535 @@
 {
 	"customCommands":
-	[
+	{
+		"/customCommandTest":
 		{
-			"segment": "/customCommandTest",
 			"response": "root response",
 			"paramTree":
-			[
+			{
+				"param1a":
 				{
-					"segment": "param1a",
 					"response": "1a response",
 					"default": "1a default",
 					"paramTree":
-					[
+					{
+						"param2a":
 						{
-							"segment": "param2a",
 							"response": "1a 2a response",
 							"default": "1a 2a default"
 						},
+						"param2b":
 						{
-							"segment": "param2b",
 							"response": "1a 2b response",
 							"default": "1a 2b default"
 						}
-					]
+					}
 				},
+				"param1b":
 				{
-					"segment": "param1b",
 					"default": "1b default: <cmdSeg:1>",
 					"paramTree":
-					[
+					{
+						"param2a":
 						{
-							"segment": "param2a",
 							"response": "1b 2a response",
 							"default": "1b 2a default"
 						},
+						"param2b":
 						{
-							"segment": "param2b",
 							"response": "1b 2b response",
 							"default": "1b 2b default"
 						}
-					]
+					}
 				}
-			]
+			}
 		},
+		"/query":
 		{
-			"segment": "/query",
 			"response": "ERROR: insufficient parameters provided",
 			"default": "ERROR: component not found '<cmdSeg:1>'",
 			"paramTree":
-			[
+			{
+				"designation":
 				{
-					"segment": "Mr_Wednesday",
-					"response": "ERROR: component found, but no query provided",
-					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
+					"response": "ERROR: no designation provided",
+					"default": "ERROR: designation '<cmdSeg:2>' not on record",
 					"paramTree":
-					[
+					{
+						"Mr_Wednesday": { "default": "designation '<cmdSeg:2>' occupies index 67" },
+						
+						"Repair_Drone":
 						{
-							"segment": "status",
-							"default": "<cmdSeg:1> <cmdSeg:2>: defective, reclaimed"
+							"default": "ERROR: no '<cmdSeg:2>' index provided",
+							"paramTree":
+							{
+								"0":  { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 7" },
+								"1":  { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 8" },
+								"2":  { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 15" },
+								"3":  { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 16" },
+								"4":  { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 17" },
+								"5":  { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 18" },
+								"6":  { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 19" },
+								"7":  { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 20" },
+								"8":  { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 21" },
+								"9":  { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 22" },
+								"10": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 23" },
+								"11": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 24" },
+								"12": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 31" },
+								"13": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 32" },
+								"14": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 39" },
+								"15": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 40" },
+								"16": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 47" },
+								"17": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 48" },
+								"18": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 55" },
+								"19": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 56" },
+								"20": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 63" },
+								"21": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 64" },
+								"22": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 71" },
+								"23": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 72" },
+								"24": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 87" },
+								"25": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 88" },
+								"26": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 95" },
+								"27": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 96" },
+								"28": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 103" },
+								"29": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 104" },
+								"30": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 111" },
+								"31": { "default": "ERROR: designation '<cmdSeg:2>' of index '<cmdSeg:3>' occupies index 112" }
+							}
 						},
-						{
-							"segment": "rootposition",
-							"default": "<cmdSeg:1> <cmdSeg:2>: x-3.21, y0.43"
-						}
-					]
-				},
 
-				{
-					"segment": "Imminent_Ruin",
-					"response": "ERROR: component found, but no query provided",
-					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
-					"paramTree":
-					[
-						{
-							"segment": "status",
-							"default": "<cmdSeg:1> <cmdSeg:2>: active"
-						},
-						{
-							"segment": "rootposition",
-							"default": "<cmdSeg:1> <cmdSeg:2>: x0.0, y0.0"
-						}
-					]
+						"Foretold_Extinction": { "default": "designation '<cmdSeg:2>' occupies index 10" },
+						"Forthcoming_Doom": { "default": "designation '<cmdSeg:2>' occupies index 25" },
+						"Imminent_Ruin": { "default": "designation '<cmdSeg:2>' occupies index 79" },
+						"Looming_Annihilation": { "default": "designation '<cmdSeg:2>' occupies index 80" },
+						"Approaching_Downfall": { "default": "designation '<cmdSeg:2>' occupies index 81" },
+						
+						"Anarchist": { "default": "designation '<cmdSeg:2>' occupies index 14" },
+						"Blackstone": { "default": "designation '<cmdSeg:2>' occupies index 50" },
+						"Chapman": { "default": "designation '<cmdSeg:2>' occupies index 106" }
+					}
 				},
+				"index":
 				{
-					"segment": "Looming_Annihilation",
-					"response": "ERROR: component found, but no query provided",
-					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
+					"response": "ERROR: no index provided",
+					"default": "ERROR: index '<cmdSeg:2>' is out of bounds",
 					"paramTree":
-					[
+					{
+						"67":
 						{
-							"segment": "status",
-							"default": "<cmdSeg:1> <cmdSeg:2>: active"
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Mr_Wednesday" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: defective, reclaimed" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x-3.21, y0.43" }
+							}
 						},
+						
+						"7":
 						{
-							"segment": "rootposition",
-							"default": "<cmdSeg:1> <cmdSeg:2>: x0.0, y0.0"
-						}
-					]
-				},
-				{
-					"segment": "Approaching_Downfall",
-					"response": "ERROR: component found, but no query provided",
-					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
-					"paramTree":
-					[
-						{
-							"segment": "status",
-							"default": "<cmdSeg:1> <cmdSeg:2>: active"
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[0]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
 						},
+						"8":
 						{
-							"segment": "rootposition",
-							"default": "<cmdSeg:1> <cmdSeg:2>: x0.0, y0.0"
-						}
-					]
-				},
-				{
-					"segment": "Foretold_Extinction",
-					"response": "ERROR: component found, but no query provided",
-					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
-					"paramTree":
-					[
-						{
-							"segment": "status",
-							"default": "on standby"
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[1]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
 						},
+						"15":
 						{
-							"segment": "rootposition",
-							"default": "<cmdSeg:1> <cmdSeg:2>: x0.0, y0.0"
-						}
-					]
-				},
-				{
-					"segment": "Forthcoming_Doom",
-					"response": "ERROR: component found, but no query provided",
-					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
-					"paramTree":
-					[
-						{
-							"segment": "status",
-							"default": "<cmdSeg:1> <cmdSeg:2>: on standby"
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[2]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
 						},
+						"16":
 						{
-							"segment": "rootposition",
-							"default": "<cmdSeg:1> <cmdSeg:2>: x0.0, y0.0"
-						}
-					]
-				},
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[3]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"17":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[4]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: offline, repairs ongoing" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"18":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[5]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: on standby" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"19":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[6]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: on standby" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"20":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[7]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: on standby" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"21":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[8]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: on standby" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"22":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[9]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: on standby" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"23":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[10]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: on standby" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"24":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[11]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: on standby" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"31":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[12]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"32":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[13]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"39":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[14]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"40":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[15]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"47":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[16]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"48":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[17]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"55":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[18]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"56":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[19]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"63":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[20]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"64":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[21]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"71":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[22]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"72":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[23]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"87":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[24]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"88":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[25]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"95":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[26]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"96":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[27]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"103":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[28]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"104":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[29]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"111":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[30]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"112":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Repair_Drone[31]" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						
+						"10":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Foretold_Extinction" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: on standby" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"25":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Forthcoming_Doom" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: on standby" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"79":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Imminent_Ruin" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"80":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Looming_Annihilation" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
+						"81":
+						{
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Approaching_Downfall" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x0.0, y0.0" }
+							}
+						},
 
-				{
-					"segment": "Blackstone",
-					"response": "ERROR: component found, but no query provided",
-					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
-					"paramTree":
-					[
+						"14":
 						{
-							"segment": "status",
-							"default": "<cmdSeg:1> <cmdSeg:2>: active, last login 38 days ago."
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Anarchist" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: defective, flagged for reclamation" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x2.21, y0.95" }
+							}
 						},
+						"50":
 						{
-							"segment": "rootposition",
-							"default": "<cmdSeg:1> <cmdSeg:2>: x-1.91, y-0.03"
-						}
-					]
-				},
-				{
-					"segment": "Anarchist",
-					"response": "ERROR: component found, but no query provided",
-					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
-					"paramTree":
-					[
-						{
-							"segment": "status",
-							"default": "<cmdSeg:1> <cmdSeg:2>: defective, flagged for reclamation"
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Blackstone" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: active, last login 38 days ago." },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x-1.91, y-0.03" }
+							}
 						},
+						"106":
 						{
-							"segment": "rootposition",
-							"default": "<cmdSeg:1> <cmdSeg:2>: x2.21, y0.95"
+							"default": "index '<cmdSeg:2>' found, but no query was given",
+							"paramTree":
+							{
+								"designation": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: Chapman" },
+								"status": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: deprecated, flagged for reclamation" },
+								"rootposition": { "default": "index '<cmdSeg:2>' <cmdSeg:3>: x-2.56, y0.19" }
+							}
 						}
-					]
-				},
-				{
-					"segment": "Chapman",
-					"response": "ERROR: component found, but no query provided",
-					"default": "ERROR: unrecognised query '<cmdSeg:2>'",
-					"paramTree":
-					[
-						{
-							"segment": "status",
-							"default": "<cmdSeg:1> <cmdSeg:2>: deprecated, flagged for reclamation"
-						},
-						{
-							"segment": "rootposition",
-							"default": "<cmdSeg:1> <cmdSeg:2>: x-2.56, y0.19"
-						}
-					]
+					}
 				}
-			]
+			}
 		}
-	]
+	}
 }  
