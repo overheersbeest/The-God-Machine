@@ -68,7 +68,7 @@ clientShouldShutdown = False
 #					\/	|_|  \___/ \___\___||___/___/ \/	\/\___||___/___/\__,_|\__, |\___(_)
 #																					|___/		
 
-async def processCommand(command :CommandPrompt):
+async def processCommand(command :CommandPrompt) -> commands.CommandResponse:
 	global clientShouldShutdown
 	commandSegments = [x for x in command.command.split(' ') if len(x) > 0]
 	commandID = commandSegments[0].lower()
@@ -123,9 +123,9 @@ async def processCommand(command :CommandPrompt):
 		else:
 			response = commands.CommandResponse(commands.gcs(flavor.getFlavourTextForPermissionError()))
 
-	elif commandID == '/thiemo':
-		response = await commands.thiemoCommand(command.member)
-
+	elif commandID == '/stop':
+		response = commands.stopSound()
+	
 	elif (commandID == '/extend'
 		or commandID == '/extended'):
 		response = commands.extendedActionCommand(commandSegments)
@@ -161,7 +161,10 @@ async def processCommand(command :CommandPrompt):
 	
 	else:
 		#custom responses
-		response = commands.handleCustomCommands(commandSegments)
+		response = await commands.trySoundCommand(commandSegments, command.member)
+
+		if response == None:
+			response = commands.handleCustomCommands(commandSegments)
 
 	return response
 

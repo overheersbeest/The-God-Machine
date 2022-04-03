@@ -108,10 +108,20 @@ async def test_customCommands(command, response):
 	assert (result == None and response == None) or (result.message == response)
 
 @pytest.mark.asyncio
-async def test_thiemoCommand():
+@pytest.mark.parametrize(("command", "responseValid"), [("/thiemo", True), ("/potg", True), ("/", False), ("", False)])
+async def test_soundboardCommand(command, responseValid):
 	prompt = bot.CommandPrompt("/thiemo", "Test UserName", True, None, None)
 	result = await bot.processCommand(prompt)
-	assert result != None
+	assert not responseValid or (result != None and result.succeeded() == True)
+
+@pytest.mark.asyncio
+async def test_stopSoundboardCommand():
+	prompt1 = bot.CommandPrompt("/thiemo", "Test UserName", True, None, None)
+	command1 = bot.processCommand(prompt1)
+	prompt2 = bot.CommandPrompt("/stop", "Test UserName", True, None, None)
+	result2 = await bot.processCommand(prompt2)
+	result1 = await command1
+	assert result1 != None and result1.succeeded() and result2 != None
 
 
 

@@ -39,8 +39,9 @@ corruptionFraction = 0.0 # 0 - 1, 0 = no corruption, 1 = full corruption
 corruptionCharacters = string.ascii_letters + string.digits + ' !"#$%&\'()+,-./:;<=?@[\]^{|}~'
 corruptionSubstitutions = ["a@4", "il|1j!", "e3", "&8", "t7", "0o", "yv", "s5$", "({[\\", ")}]/", ";:", ".,*'`", "n^", "~-+_"]
 allCorruptionSubstitutionChars = "".join(corruptionSubstitutions)
-#thiemo
-lastThiemoSoundPath = None
+#sounds
+lastPlayedSoundPath = None
+shouldStopSplaying = False
 
 #																   _	   
 #					  ___ ___  _ __ ___  _ __ ___   __ _ _ __   __| |___ _ 
@@ -50,7 +51,10 @@ lastThiemoSoundPath = None
 
 @dataclass
 class CommandResponse:
-	message: str = None
+	message :str = None
+	silentSuccess :bool = True
+	def succeeded(self) -> bool:
+		return self.silentSuccess or len(self.message > 0)
 
 def tarotCommand() -> CommandResponse:
 	card = random.choice(tarotCards["cards"])
@@ -705,34 +709,59 @@ def handleCustomCommands(commandSegments :list[str]) -> CommandResponse:
 	else:
 		return None
 
-async def thiemoCommand(author :discord.Member) -> CommandResponse:
-	global lastThiemoSoundPath
-	# Gets voice channel of message author
-	voice_channel = None
-	if author != None and author.voice != None:
-		voice_channel = author.voice.channel # pragma: no cover
-	if voice_channel != None: # pragma: no cover
-		soundFilePaths = []
-		for file in os.listdir("GodMachine/ThiemoSounds"):
-			path = os.path.join("GodMachine/ThiemoSounds", file)
-			if path.endswith(".mp3") and path != lastThiemoSoundPath:
-				soundFilePaths.append(path)
-		if len(soundFilePaths) > 0:
-			try:
-				vc = await voice_channel.connect()
-				lastThiemoSoundPath = random.choice(soundFilePaths)
-				vc.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/bin/ffmpeg.exe", source=lastThiemoSoundPath))
-				#buffer
-				vc.pause()
-				await sleep(.5)
-				vc.resume()
-				# Sleep while audio is playing.
-				while vc.is_playing():
-					await sleep(.1)
-				await sleep(.5)
-			except discord.errors.ClientException:
-				return CommandResponse(gcs("A clientException occured, does the host have ffmpeg installed in 'C:/ffmpeg/bin/ffmpeg.exe'?"))
-			finally:
-				await vc.disconnect()
+async def trySoundCommand(commandSegments :list[str], author :discord.Member) -> CommandResponse:
+	if len(commandSegments) == 0:
+		return False # pragma: no cover
+
+	global lastPlayedSoundPath
+	soundFilePaths = findSoundPathsToPlay("GodMachine/SoundboardSounds", commandSegments[0][1:].lower())
+	if len(soundFilePaths) > 0:
+		# Gets voice channel of message author
+		voice_channel = None
+		if author != None and author.voice != None:
+			voice_channel = author.voice.channel # pragma: no cover
+		if voice_channel != None: # pragma: no cover
+				lastPlayedSoundPath = random.choice(soundFilePaths)
+				await playSound(voice_channel, lastPlayedSoundPath)
+				return CommandResponse(silentSuccess=True)
+		else:
+			return CommandResponse(gcs(flavor.getFlavourTextForVoiceChannelError()))
 	else:
-		return CommandResponse(gcs(flavor.getFlavourTextForVoiceChannelError()))
+		return None
+
+def findSoundPathsToPlay(dirPath :str, prefix :str) ->list[str]:
+	global lastPlayedSoundPath
+	soundFilePaths = []
+	for file in os.listdir(dirPath):
+		path = os.path.join(dirPath, file)
+		if file.lower().startswith(prefix) and path.endswith(".mp3") and path != lastPlayedSoundPath:
+			soundFilePaths.append(path)
+	return soundFilePaths	
+
+async def playSound(voice_channel :discord.VoiceChannel, soundPath :str) -> bool: # pragma: no cover
+	global shouldStopSplaying
+	success = False
+	shouldStopSplaying = False
+	try:
+		vc = await voice_channel.connect()
+		vc.play(discord.FFmpegPCMAudio(executable="ffmpeg.exe", source=soundPath))
+		#buffer
+		vc.pause()
+		await sleep(.5)
+		vc.resume()
+		# Sleep while audio is playing.
+		while vc.is_playing() and not shouldStopSplaying:
+			await sleep(.1)
+		await sleep(.5)
+		success = True
+	except discord.errors.ClientException:
+		return CommandResponse(gcs("A clientException occured, does the host have ffmpeg installed?"))
+	finally:
+		await vc.disconnect()
+		return success
+
+def stopSound() -> CommandResponse:
+	global shouldStopSplaying
+	retVal = CommandResponse(silentSuccess=shouldStopSplaying==False)
+	shouldStopSplaying = True
+	return retVal
