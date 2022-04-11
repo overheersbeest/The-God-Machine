@@ -115,6 +115,16 @@ async def test_soundboardCommand(command, responseValid):
 	assert not responseValid or (result != None and result.succeeded() == True)
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(("command"), ["/thiemo", "/potg"])
+async def test_soundboardCommand_sequential(command):
+	prompt1 = bot.CommandPrompt(command, "Test UserName", True, None, None)
+	result1 = await bot.processCommand(prompt1)
+	assert result1 != None
+	prompt2 = bot.CommandPrompt(command, "Test UserName", True, None, None)
+	result2 = await bot.processCommand(prompt2)
+	assert result2 != None
+
+@pytest.mark.asyncio
 async def test_stopSoundboardCommand():
 	prompt1 = bot.CommandPrompt("/thiemo", "Test UserName", True, None, None)
 	command1 = bot.processCommand(prompt1)
@@ -122,6 +132,13 @@ async def test_stopSoundboardCommand():
 	result2 = await bot.processCommand(prompt2)
 	result1 = await command1
 	assert result1 != None and result1.succeeded() and result2 != None
+
+@pytest.mark.asyncio
+async def test_soundlist():
+	prompt = bot.CommandPrompt("/soundlist", "Test UserName", True, None, None)
+	for i in range(100):
+		result = await bot.processCommand(prompt)
+		assert result != None
 
 
 

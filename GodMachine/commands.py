@@ -63,7 +63,7 @@ class CommandResponse:
 		self.silentSuccess = silentSuccess
 
 	def succeeded(self) -> bool:
-		return self.silentSuccess or len(self.message > 0)
+		return self.silentSuccess or len(self.message) > 0
 
 def tarotCommand() -> CommandResponse:
 	card = random.choice(tarotCards["cards"])
@@ -758,8 +758,8 @@ def findSoundPathsToPlay(prefix :str) ->list[str]:
 		path = os.path.join(soundboardSoundsDir, file)
 		if file.lower().startswith(prefix) and path.endswith(".mp3") and path != lastPlayedSoundPath:
 			soundFilePaths.append(path)
-	if len(soundFilePaths) == 0:
-		if ("\\" + prefix) in lastPlayedSoundPath.lower():
+	if len(soundFilePaths) == 0 and lastPlayedSoundPath != None:
+		if ("\\" + prefix) in lastPlayedSoundPath.lower(): # pragma: no cover
 			soundFilePaths.append(lastPlayedSoundPath)
 	
 	return soundFilePaths	
