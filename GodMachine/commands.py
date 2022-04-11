@@ -42,6 +42,7 @@ allCorruptionSubstitutionChars = "".join(corruptionSubstitutions)
 #sounds
 lastPlayedSoundPath = None
 shouldStopSplaying = False
+soundboardSoundsDir = "GodMachine/SoundboardSounds"
 
 #																   _	   
 #					  ___ ___  _ __ ___  _ __ ___   __ _ _ __   __| |___ _ 
@@ -52,7 +53,15 @@ shouldStopSplaying = False
 @dataclass
 class CommandResponse:
 	message :str = None
-	silentSuccess :bool = True
+	silentSuccess :bool = None
+
+	def __init__(self, message = None, silentSuccess = False):
+		if message != None:
+			self.message = message
+		else:
+			self.message = ""
+		self.silentSuccess = silentSuccess
+
 	def succeeded(self) -> bool:
 		return self.silentSuccess or len(self.message > 0)
 
@@ -714,7 +723,7 @@ async def trySoundCommand(commandSegments :list[str], author :discord.Member) ->
 		return False # pragma: no cover
 
 	global lastPlayedSoundPath
-	soundFilePaths = findSoundPathsToPlay("GodMachine/SoundboardSounds", commandSegments[0][1:].lower())
+	soundFilePaths = findSoundPathsToPlay(commandSegments[0][1:].lower())
 	if len(soundFilePaths) > 0:
 		# Gets voice channel of message author
 		voice_channel = None
@@ -729,13 +738,30 @@ async def trySoundCommand(commandSegments :list[str], author :discord.Member) ->
 	else:
 		return None
 
-def findSoundPathsToPlay(dirPath :str, prefix :str) ->list[str]:
+def trySoundListCommand() -> CommandResponse:
+	global soundboardSoundsDir
+	matches = []
+	r = re.compile("^(\D+)(\d+)?\.mp3$")
+	for filename in os.listdir(soundboardSoundsDir):
+		searchMatch = r.search(filename)
+		id = searchMatch.group(1)
+		if id not in matches:
+			matches.append(id)
+		
+	return CommandResponse(gcs("_**Behold, the list of my summons:**_\r\n" + "\r\n".join([x.lower() for x in sorted(matches)])))
+
+def findSoundPathsToPlay(prefix :str) ->list[str]:
 	global lastPlayedSoundPath
+	global soundboardSoundsDir
 	soundFilePaths = []
-	for file in os.listdir(dirPath):
-		path = os.path.join(dirPath, file)
+	for file in os.listdir(soundboardSoundsDir):
+		path = os.path.join(soundboardSoundsDir, file)
 		if file.lower().startswith(prefix) and path.endswith(".mp3") and path != lastPlayedSoundPath:
 			soundFilePaths.append(path)
+	if len(soundFilePaths) == 0:
+		if ("\\" + prefix) in lastPlayedSoundPath.lower():
+			soundFilePaths.append(lastPlayedSoundPath)
+	
 	return soundFilePaths	
 
 async def playSound(voice_channel :discord.VoiceChannel, soundPath :str) -> bool: # pragma: no cover
@@ -757,7 +783,10 @@ async def playSound(voice_channel :discord.VoiceChannel, soundPath :str) -> bool
 	except discord.errors.ClientException:
 		return CommandResponse(gcs("A clientException occured, does the host have ffmpeg installed?"))
 	finally:
-		await vc.disconnect()
+		try:
+			await vc.disconnect()
+		except:
+			pass
 		return success
 
 def stopSound() -> CommandResponse:

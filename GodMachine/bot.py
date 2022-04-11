@@ -53,8 +53,9 @@ class MyClient(discord.Client): # pragma: no cover
 		if (len(command) > 0 and not message.author.bot and channelCheck(message)):
 			prompt = CommandPrompt(command, message.author.display_name, isMessageSentByAdmin(message), message.author if type(message.author) == discord.Member else None, message.channel)
 			response = await processCommand(prompt)
-			if response != None and len(response.message):
-				await message.channel.send(response.message)
+			if response != None:
+				if len(response.message):
+					await message.channel.send(response.message)
 			if clientShouldShutdown:
 				await self.shutdownGracefully()
 
@@ -144,11 +145,14 @@ async def processCommand(command :CommandPrompt) -> commands.CommandResponse:
 		else:
 			response = commands.CommandResponse(commands.gcs(flavor.getFlavourTextForPermissionError()))
 	
-	elif (commandID == '/echo'):
+	elif commandID == '/echo':
 		response = commands.CommandResponse(commands.gcs(command.command[len(commandID)+1:].strip()))
-	elif (commandID == '/echosoft'):
+	elif commandID == '/echosoft':
 		response = commands.CommandResponse(commands.gcs(command.command[len(commandID)+1:].strip(), False))
 	
+	elif commandID == '/soundlist':
+		response = commands.trySoundListCommand()
+
 	elif commandID == "/shutdown":
 		if command.adminAuthor:
 			response = commands.CommandResponse(commands.gcs("_Affirmative, shutting down._"))
