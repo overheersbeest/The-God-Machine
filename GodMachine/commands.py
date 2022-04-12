@@ -718,12 +718,12 @@ def handleCustomCommands(commandSegments :list[str]) -> CommandResponse:
 	else:
 		return None
 
-async def trySoundCommand(commandSegments :list[str], author :discord.Member) -> CommandResponse:
-	if len(commandSegments) == 0:
+async def trySoundCommand(commandID :str, author :discord.Member) -> CommandResponse:
+	if len(commandID) == 0:
 		return False # pragma: no cover
 
 	global lastPlayedSoundPath
-	soundFilePaths = findSoundPathsToPlay(commandSegments[0][1:].lower())
+	soundFilePaths = findSoundPathsToPlay(commandID.lower())
 	if len(soundFilePaths) > 0:
 		# Gets voice channel of message author
 		voice_channel = None

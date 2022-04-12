@@ -165,7 +165,8 @@ async def processCommand(command :CommandPrompt) -> commands.CommandResponse:
 	
 	else:
 		#custom responses
-		response = await commands.trySoundCommand(commandSegments, command.member)
+		if commandID.startswith('/'):
+			response = await commands.trySoundCommand(commandID[1:], command.member)
 
 		if response == None:
 			response = commands.handleCustomCommands(commandSegments)
