@@ -136,6 +136,14 @@ class rollResult:
 	successes: int
 	diceValues: list[int]
 
+@dataclass
+class diceRollResult:
+	result: int = 0
+	singleDiceRoll: bool = True
+	rollString: str = ""
+	resultString: str = ""
+	errorString: str = ""
+
 def coinFlipCommand() -> CommandResponse:
 	return CommandResponse(gcs("result: ") + gcs("Heads" if random.choice([True, False]) else "Tails", False))
 
@@ -169,9 +177,28 @@ def rollCommand(commandSegments :list[str], authorName :str) -> CommandResponse:
 			return coinFlipCommand()
 		
 		#custom dice
-		diceMatch = re.search("^(\d*)d(\d+)(([\+\-])([\+\d\-d]+))?$", commandSegments[1])
-		if diceMatch:
-			return parseDiceString(commandSegments[1], True, 0, "", "", True)
+		diceMatches = [re.search("^(\d*)d(\d+)(([\+\-])([\+\d\-d]+))?$", x) for x in commandSegments[1:]]
+		dicerollIndex = next(i for i,x in enumerate(diceMatches) if x != None)
+		if dicerollIndex != -1:
+			additionalParams = [x for i,x in enumerate(commandSegments[1:]) if i != dicerollIndex]
+			advantage = 'advantage' in additionalParams or 'adv' in additionalParams or 'blessed' in additionalParams
+			disadvantage = 'disadvantage' in additionalParams or 'disadv' in additionalParams or 'blighted' in additionalParams
+
+			if advantage or disadvantage:
+				rollResult = parseDiceString(commandSegments[1 + dicerollIndex], True, diceRollResult(), True)
+				extraResult = parseDiceString(commandSegments[1 + dicerollIndex], True, diceRollResult(), True)
+				discardedResult = None
+
+				if (extraResult.result > rollResult.result) == advantage:
+					discardedResult = rollResult
+					rollResult = extraResult
+				else:
+					discardedResult = extraResult
+				
+				return CommandResponse(getDiceRollResponseString(rollResult, discardedResult, advantage))
+			else:
+				rollResult = parseDiceString(commandSegments[1 + dicerollIndex], True, diceRollResult(), True)
+				return CommandResponse(getDiceRollResponseString(rollResult, None))
 			
 	#typical roll:
 	rollAmount = -1
@@ -382,24 +409,25 @@ def getRollResultTypeText(amountOfSuccesses :int, exceptionalThres :int) -> str:
 	else:
 		return gcs("a ") + gcs("dramatic failure", False)
 
-def parseDiceString(queryString :str, plus :bool, resultSoFar :int, rollString :str, resultString :str, firstQuery :bool = False) -> CommandResponse:
+def parseDiceString(queryString :str, plus :bool, resultSoFar :diceRollResult, firstQuery :bool = False) -> diceRollResult:
 	match = re.search("^((?P<number>\d*)|(?P<dice>\d*d\d+))(?P<remainder>(?P<sign>[\+\-])(?=[d\d])(?P<nextQuery>[\+\d\-d]+))?$", queryString)
 	if match:
 		numberString = match.groupdict()["number"]
 		diceString = match.groupdict()["dice"]
 		remainderString = match.groupdict()["remainder"]
 
+		nDice = 0
 		if numberString != None:
 			#numbers are never the first segment of a dice roll, so no need to check for firstQuery
 			number = int(numberString)
 			if plus:
-				resultSoFar += number
-				rollString += "+" + str(number)
-				resultString += "+" + str(number)
+				resultSoFar.result += number
+				resultSoFar.rollString += "+" + str(number)
+				resultSoFar.resultString += "+" + str(number)
 			else:
-				resultSoFar -= number
-				rollString += "-" + str(number)
-				resultString += "-" + str(number)
+				resultSoFar.result -= number
+				resultSoFar.rollString += "-" + str(number)
+				resultSoFar.resultString += "-" + str(number)
 		if diceString != None:
 			diceMatch = re.search("^(\d*)d(\d+)$", diceString)
 			if len(diceMatch.group(1)) == 0:
@@ -410,28 +438,45 @@ def parseDiceString(queryString :str, plus :bool, resultSoFar :int, rollString :
 			if nSides >= 1 and nDice >= 1:
 				rollResult = [random.randint(1, nSides) for i in range(nDice)]
 				if plus:
-					resultSoFar += sum(rollResult)
+					resultSoFar.result += sum(rollResult)
 				else:
-					resultSoFar -= sum(rollResult)
+					resultSoFar.result -= sum(rollResult)
 				separatorStr = ("" if firstQuery else ("+" if plus else "-"))
-				rollString += separatorStr + str(nDice) + "d" + str(nSides)
-				resultString += separatorStr + "(" + (', '.join([str(x) for x in rollResult])) + ")"
+				resultSoFar.rollString += separatorStr + str(nDice) + "d" + str(nSides)
+				resultSoFar.resultString += separatorStr + "(" + (', '.join([str(x) for x in rollResult])) + ")"
 			else:
-				return CommandResponse(gcs(flavor.getFlavourTextForWrongParamError() % diceString))
+				resultSoFar.errorString = gcs(flavor.getFlavourTextForWrongParamError() % diceString)
+				return resultSoFar
 		if remainderString != None:
 			signString = match.groupdict()["sign"]
 			nextQueryString = match.groupdict()["nextQuery"]
 			if signString == '-':
-				return parseDiceString(nextQueryString, False, resultSoFar, rollString, resultString)
+				return parseDiceString(nextQueryString, False, resultSoFar)
 			else:
-				return parseDiceString(nextQueryString, True, resultSoFar, rollString, resultString)
+				return parseDiceString(nextQueryString, True, resultSoFar)
 		else:
-			if firstQuery:
-				return CommandResponse(gcs("rolled " + rollString + ": ") + str(resultSoFar))
-			else:
-				return CommandResponse(gcs("rolled " + rollString + ": ") + str(resultSoFar) + gcs(" (" + resultString + ")"))
+			resultSoFar.singleDiceRoll = firstQuery and nDice <= 1
+			return resultSoFar
 	else:
-		return CommandResponse(gcs(flavor.getFlavourTextForWrongParamError() % queryString))
+		resultSoFar.errorString = gcs(flavor.getFlavourTextForWrongParamError() % queryString)
+		return resultSoFar
+
+def getDiceRollResponseString(pickedResult :diceRollResult, otherResult :diceRollResult, pickedHighest :bool = True) -> str:
+	if len(pickedResult.errorString) > 0:
+		return gcs(pickedResult.errorString)
+
+	if otherResult == None:
+		responseString = gcs("rolled " + pickedResult.rollString + ": **") + str(pickedResult.result) + "**"
+		if not pickedResult.singleDiceRoll:
+			responseString += gcs(" (" + pickedResult.resultString + ")")
+	else:
+		responseString = gcs("rolled " + pickedResult.rollString + " twice, picked " + ("highest" if pickedHighest else "lowest") + " result: **") + str(pickedResult.result) + "**"
+		if not pickedResult.singleDiceRoll:
+			responseString += gcs(" (" + pickedResult.resultString + ")")
+		responseString += "\r\nOther roll: *" + str(otherResult.result)
+		if not otherResult.singleDiceRoll:
+			responseString += gcs(" (" + otherResult.resultString + ")*")
+	return responseString
 
 def rollInitiativeCommand(remainingCommandSegments :list[str], authorName :str):
 	global recentInitList
@@ -743,7 +788,7 @@ async def trySoundCommand(commandID :str, author :discord.Member) -> CommandResp
 def trySoundListCommand() -> CommandResponse:
 	global soundboardSoundsDir
 	matches = []
-	r = re.compile("^(\D+)(\d+)?\.mp3$")
+	r = re.compile("^(.+\D)(\d+)?\.mp3$")
 	for filename in os.listdir(soundboardSoundsDir):
 		searchMatch = r.search(filename)
 		id = searchMatch.group(1)
