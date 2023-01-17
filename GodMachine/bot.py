@@ -59,7 +59,10 @@ class MyClient(discord.Client): # pragma: no cover
 			if clientShouldShutdown:
 				await self.shutdownGracefully()
 
-client = MyClient()
+intents = discord.Intents.default()
+intents.message_content = True
+#intents.members = True
+client = MyClient(intents=intents)
 clientShouldShutdown = False
 
 #					   ___																	   
@@ -163,6 +166,9 @@ async def processCommand(command :CommandPrompt) -> commands.CommandResponse:
 		else:
 			response = commands.CommandResponse(commands.gcs("_Threat detected, defense mechanisms active._"))
 	
+	elif commandID == "/steve":
+			response = await commands.steveCommand(command.member)
+
 	else:
 		#custom responses
 		if commandID.startswith('/'):

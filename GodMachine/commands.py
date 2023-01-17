@@ -731,8 +731,7 @@ async def trySoundCommand(commandID :str, author :discord.Member) -> CommandResp
 			voice_channel = author.voice.channel # pragma: no cover
 		if voice_channel != None: # pragma: no cover
 				lastPlayedSoundPath = random.choice(soundFilePaths)
-				await playSound(voice_channel, lastPlayedSoundPath)
-				return CommandResponse(silentSuccess=True)
+				return await playSound(voice_channel, lastPlayedSoundPath)
 		else:
 			return CommandResponse(gcs(flavor.getFlavourTextForVoiceChannelError()))
 	else:
@@ -764,13 +763,13 @@ def findSoundPathsToPlay(prefix :str) ->list[str]:
 	
 	return soundFilePaths	
 
-async def playSound(voice_channel :discord.VoiceChannel, soundPath :str) -> bool: # pragma: no cover
+async def playSound(voice_channel :discord.VoiceChannel, soundPath :str, loops :int = 0 ) -> bool: # pragma: no cover
 	global shouldStopSplaying
 	success = False
 	shouldStopSplaying = False
 	try:
 		vc = await voice_channel.connect()
-		vc.play(discord.FFmpegPCMAudio(executable="ffmpeg.exe", source=soundPath))
+		vc.play(discord.FFmpegPCMAudio(executable="ffmpeg.exe", source=soundPath, before_options=("-stream_loop " + str(loops))))
 		#buffer
 		vc.pause()
 		await sleep(.5)
@@ -787,7 +786,18 @@ async def playSound(voice_channel :discord.VoiceChannel, soundPath :str) -> bool
 			await vc.disconnect()
 		except:
 			pass
-		return success
+		return CommandResponse(silentSuccess=success)
+
+async def steveCommand(author :discord.Member) -> CommandResponse:
+	global soundboardSoundsDir
+	response = CommandResponse("https://media.tenor.com/j29kKldLXKMAAAAS/d4-steve.gif")
+	# Gets voice channel of message author
+	voice_channel = None
+	if author != None and author.voice != None:
+		voice_channel = author.voice.channel # pragma: no cover
+	if voice_channel != None: # pragma: no cover
+			await playSound(voice_channel, os.path.join(soundboardSoundsDir, "steve.mp3"), -1)
+	return response
 
 def stopSound() -> CommandResponse:
 	global shouldStopSplaying
