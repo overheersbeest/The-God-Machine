@@ -128,7 +128,7 @@ async def processCommand(command :CommandPrompt) -> commands.CommandResponse:
 			response = commands.CommandResponse(commands.gcs(flavor.getFlavourTextForPermissionError()))
 
 	elif commandID == '/stop':
-		response = commands.stopSound()
+		response = await commands.stopSound()
 	
 	elif (commandID == '/extend'
 		or commandID == '/extended'):

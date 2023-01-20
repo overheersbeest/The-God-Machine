@@ -1,5 +1,6 @@
 print('loading standard modules...')
 from asyncio import sleep
+import asyncio
 from dataclasses import dataclass
 import datetime
 import json
@@ -40,6 +41,7 @@ corruptionCharacters = string.ascii_letters + string.digits + ' !"#$%&\'()+,-./:
 corruptionSubstitutions = ["a@4", "il|1j!", "e3", "&8", "t7", "0o", "yv", "s5$", "({[\\", ")}]/", ";:", ".,*'`", "n^", "~-+_"]
 allCorruptionSubstitutionChars = "".join(corruptionSubstitutions)
 #sounds
+playSoundTask = None
 lastPlayedSoundPath = None
 shouldStopSplaying = False
 soundboardSoundsDir = "GodMachine/SoundboardSounds"
@@ -643,6 +645,7 @@ def gcs(input :str, allowFullCorruption :bool = True) -> str :
 	return ''.join(output)
 
 async def shutdownCommand(guilds :list[discord.Guild]):
+	await stopSound()
 	for guild in guilds:
 		for member in guild.members: # pragma: no cover
 			if (member != None
@@ -760,12 +763,15 @@ def findSoundPathsToPlay(prefix :str) ->list[str]:
 	if len(soundFilePaths) == 0 and lastPlayedSoundPath != None:
 		if ("\\" + prefix) in lastPlayedSoundPath.lower(): # pragma: no cover
 			soundFilePaths.append(lastPlayedSoundPath)
+	return soundFilePaths
 	
-	return soundFilePaths	
+async def playSound(voice_channel :discord.VoiceChannel, soundPath :str, loops :int = 0 ):
+	global playSoundTask
+	if playSoundTask == None or playSoundTask.done():
+		playSoundTask = asyncio.create_task(playSound_Internal(voice_channel, soundPath, loops))
 
-async def playSound(voice_channel :discord.VoiceChannel, soundPath :str, loops :int = 0 ) -> bool: # pragma: no cover
+async def playSound_Internal(voice_channel :discord.VoiceChannel, soundPath :str, loops :int = 0 ): # pragma: no cover
 	global shouldStopSplaying
-	success = False
 	shouldStopSplaying = False
 	try:
 		vc = await voice_channel.connect()
@@ -778,7 +784,6 @@ async def playSound(voice_channel :discord.VoiceChannel, soundPath :str, loops :
 		while vc.is_playing() and not shouldStopSplaying:
 			await sleep(.1)
 		await sleep(.5)
-		success = True
 	except discord.errors.ClientException:
 		return CommandResponse(gcs("A clientException occured, does the host have ffmpeg installed?"))
 	finally:
@@ -786,7 +791,6 @@ async def playSound(voice_channel :discord.VoiceChannel, soundPath :str, loops :
 			await vc.disconnect()
 		except:
 			pass
-		return CommandResponse(silentSuccess=success)
 
 async def steveCommand(author :discord.Member) -> CommandResponse:
 	global soundboardSoundsDir
@@ -796,11 +800,14 @@ async def steveCommand(author :discord.Member) -> CommandResponse:
 	if author != None and author.voice != None:
 		voice_channel = author.voice.channel # pragma: no cover
 	if voice_channel != None: # pragma: no cover
-			await playSound(voice_channel, os.path.join(soundboardSoundsDir, "steve.mp3"), -1)
+		await playSound(voice_channel, os.path.join(soundboardSoundsDir, "steve.mp3"), -1)
 	return response
 
-def stopSound() -> CommandResponse:
+async def stopSound() -> CommandResponse:
 	global shouldStopSplaying
+	global playSoundTask
 	retVal = CommandResponse(silentSuccess=shouldStopSplaying==False)
 	shouldStopSplaying = True
+	if playSoundTask != None:
+		await playSoundTask
 	return retVal
