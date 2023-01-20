@@ -1,7 +1,7 @@
 
 import pytest
 import discord
-import discord.ext.test as dpytest
+#import discord.ext.test as dpytest
 import GodMachine.bot as bot
 """
 @pytest.fixture

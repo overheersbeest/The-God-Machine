@@ -765,7 +765,7 @@ def findSoundPathsToPlay(prefix :str) ->list[str]:
 			soundFilePaths.append(lastPlayedSoundPath)
 	return soundFilePaths
 	
-async def playSound(voice_channel :discord.VoiceChannel, soundPath :str, loops :int = 0 ):
+async def playSound(voice_channel :discord.VoiceChannel, soundPath :str, loops :int = 0 ): # pragma: no cover
 	global playSoundTask
 	if playSoundTask == None or playSoundTask.done():
 		playSoundTask = asyncio.create_task(playSound_Internal(voice_channel, soundPath, loops))
@@ -796,11 +796,10 @@ async def steveCommand(author :discord.Member) -> CommandResponse:
 	global soundboardSoundsDir
 	response = CommandResponse("https://media.tenor.com/j29kKldLXKMAAAAS/d4-steve.gif")
 	# Gets voice channel of message author
-	voice_channel = None
 	if author != None and author.voice != None:
 		voice_channel = author.voice.channel # pragma: no cover
-	if voice_channel != None: # pragma: no cover
-		await playSound(voice_channel, os.path.join(soundboardSoundsDir, "steve.mp3"), -1)
+		if voice_channel != None: # pragma: no cover
+			await playSound(voice_channel, os.path.join(soundboardSoundsDir, "steve.mp3"), -1)
 	return response
 
 async def stopSound() -> CommandResponse:
@@ -809,5 +808,5 @@ async def stopSound() -> CommandResponse:
 	retVal = CommandResponse(silentSuccess=shouldStopSplaying==False)
 	shouldStopSplaying = True
 	if playSoundTask != None:
-		await playSoundTask
+		await playSoundTask # pragma: no cover
 	return retVal

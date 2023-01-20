@@ -140,6 +140,12 @@ async def test_soundlist():
 		result = await bot.processCommand(prompt)
 		assert result != None
 
+@pytest.mark.asyncio
+async def test_steveCommand():
+	prompt = bot.CommandPrompt("/steve", "Test UserName", True, None, None)
+	result = await bot.processCommand(prompt)
+	assert result != None and result.succeeded()
+
 
 
 ########## KEEP LAST ##########
