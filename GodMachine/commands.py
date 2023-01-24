@@ -25,7 +25,7 @@ customCommands = None
 with open("GodMachine/CustomResponses.json") as CustomCommandFile:
 	customCommands = json.load(CustomCommandFile)
 
-print('initializing variabless...')
+print('initializing variables...')
 #init tracking
 recentInitResetTimeMinutes = 30
 recentInitList = {}
@@ -177,16 +177,18 @@ def rollCommand(commandSegments :list[str], authorName :str) -> CommandResponse:
 			return coinFlipCommand()
 		
 		#custom dice
-		diceMatches = [re.search("^(\d*)d(\d+)(([\+\-])([\+\d\-d]+))?$", x) for x in commandSegments[1:]]
-		dicerollIndex = next(i for i,x in enumerate(diceMatches) if x != None)
+		diceMatches = [re.search("^(\d*)[dD](\d+)(([\+\-])([\+\d\-d]+))?$", x) for x in commandSegments[1:]]
+		dicerollIndex = -1
+		if diceMatches[0] != None:
+			dicerollIndex = next(i for i,x in enumerate(diceMatches) if x != None)
 		if dicerollIndex != -1:
-			additionalParams = [x for i,x in enumerate(commandSegments[1:]) if i != dicerollIndex]
+			additionalParams = [x.lower() for i,x in enumerate(commandSegments[1:]) if i != dicerollIndex]
 			advantage = 'advantage' in additionalParams or 'adv' in additionalParams or 'blessed' in additionalParams
 			disadvantage = 'disadvantage' in additionalParams or 'disadv' in additionalParams or 'blighted' in additionalParams
 
 			if advantage or disadvantage:
-				rollResult = parseDiceString(commandSegments[1 + dicerollIndex], True, diceRollResult(), True)
-				extraResult = parseDiceString(commandSegments[1 + dicerollIndex], True, diceRollResult(), True)
+				rollResult = parseDiceString(commandSegments[1 + dicerollIndex].lower(), True, diceRollResult(), True)
+				extraResult = parseDiceString(commandSegments[1 + dicerollIndex].lower(), True, diceRollResult(), True)
 				discardedResult = None
 
 				if (extraResult.result > rollResult.result) == advantage:
@@ -197,7 +199,7 @@ def rollCommand(commandSegments :list[str], authorName :str) -> CommandResponse:
 				
 				return CommandResponse(getDiceRollResponseString(rollResult, discardedResult, advantage))
 			else:
-				rollResult = parseDiceString(commandSegments[1 + dicerollIndex], True, diceRollResult(), True)
+				rollResult = parseDiceString(commandSegments[1 + dicerollIndex].lower(), True, diceRollResult(), True)
 				return CommandResponse(getDiceRollResponseString(rollResult, None))
 			
 	#typical roll:
