@@ -127,7 +127,7 @@ async def processCommand(command :CommandPrompt) -> commands.CommandResponse:
 		else:
 			response = commands.CommandResponse(commands.gcs(flavor.getFlavourTextForPermissionError()))
 
-	elif commandID == '/stop':
+	elif command.command.lower() == '/stop': #check verbatim, to allow sounds/custom commands that start with 'stop'
 		response = await commands.stopSound()
 	
 	elif (commandID == '/extend'
@@ -167,7 +167,10 @@ async def processCommand(command :CommandPrompt) -> commands.CommandResponse:
 			response = commands.CommandResponse(commands.gcs("_Threat detected, defense mechanisms active._"))
 	
 	elif commandID == "/steve":
-			response = await commands.steveCommand(command.member)
+		response = await commands.steveCommand(command.member)
+	
+	elif commandID == "/plot":
+		response = commands.plotCommand()
 
 	else:
 		#custom responses

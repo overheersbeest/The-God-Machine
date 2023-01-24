@@ -80,6 +80,14 @@ async def test_rolldice(command):
 	assert result != None
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("command", ["/roll adv 1d20", "/roll disadv 1d20", "/roll adv 3d20+1d6", "/roll disadv 3d20+1d6", "/roll 1d20 adv", "/roll 1d20 disadv"])
+async def test_rolldice_advantage(command):
+	prompt = bot.CommandPrompt(command, "Test UserName", False, None, None)
+	for i in range(100):
+		result = await bot.processCommand(prompt)
+		assert result != None
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(("str", "echo"), [("normal", "normal"), ("with space", "with space"), (" leading space", "leading space"), ("trailing space ", "trailing space"), ("break\r\nline ", "break\r\nline"), ("", ""), (" ", "")])
 async def test_echo(str, echo):
 	prompt = bot.CommandPrompt("/echo " + str, "Test UserName", False, None, None)
@@ -143,6 +151,12 @@ async def test_soundlist():
 @pytest.mark.asyncio
 async def test_steveCommand():
 	prompt = bot.CommandPrompt("/steve", "Test UserName", True, None, None)
+	result = await bot.processCommand(prompt)
+	assert result != None and result.succeeded()
+
+@pytest.mark.asyncio
+async def test_plotCommand():
+	prompt = bot.CommandPrompt("/plot", "Test UserName", True, None, None)
 	result = await bot.processCommand(prompt)
 	assert result != None and result.succeeded()
 

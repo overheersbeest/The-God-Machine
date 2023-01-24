@@ -20,6 +20,11 @@ tarotCards = None
 with open("GodMachine/TarotCards.json") as TarotFile:
 	tarotCards = json.load(TarotFile)
 
+print('loading plots...')
+plots = None
+with open("GodMachine/Plots.json") as plotFile:
+	plots = json.load(plotFile)
+
 print('loading custom commands...')
 customCommands = None
 with open("GodMachine/CustomResponses.json") as CustomCommandFile:
@@ -178,9 +183,7 @@ def rollCommand(commandSegments :list[str], authorName :str) -> CommandResponse:
 		
 		#custom dice
 		diceMatches = [re.search("^(\d*)[dD](\d+)(([\+\-])([\+\d\-d]+))?$", x) for x in commandSegments[1:]]
-		dicerollIndex = -1
-		if diceMatches[0] != None:
-			dicerollIndex = next(i for i,x in enumerate(diceMatches) if x != None)
+		dicerollIndex = next((i for i,x in enumerate(diceMatches) if x != None), -1)
 		if dicerollIndex != -1:
 			additionalParams = [x.lower() for i,x in enumerate(commandSegments[1:]) if i != dicerollIndex]
 			advantage = 'advantage' in additionalParams or 'adv' in additionalParams or 'blessed' in additionalParams
@@ -857,3 +860,12 @@ async def stopSound() -> CommandResponse:
 	if playSoundTask != None:
 		await playSoundTask # pragma: no cover
 	return retVal
+
+def plotCommand() -> CommandResponse:
+	plot = random.choice(list(plots.keys()))
+	message = "**" + plot.upper() + "**\r\nElements: *" + plots[plot]["elements"] + "*"
+	example = random.choice(list(plots[plot]["examples"].keys()))
+	plots[plot]["examples"][example]
+	for example in plots[plot]["examples"].keys():
+		message += "\r\n**" + example + "**: " + random.choice(plots[plot]["examples"][example])
+	return CommandResponse(message=gcs(message))
