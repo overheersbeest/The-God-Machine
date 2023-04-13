@@ -480,7 +480,8 @@ def getDiceRollResponseString(pickedResult :diceRollResult, otherResult :diceRol
 			responseString += gcs(" (" + pickedResult.resultString + ")")
 		responseString += "\r\nOther roll: *" + str(otherResult.result)
 		if not otherResult.singleDiceRoll:
-			responseString += gcs(" (" + otherResult.resultString + ")*")
+			responseString += gcs(" (" + otherResult.resultString + ")")
+		responseString += "*"
 	return responseString
 
 def rollInitiativeCommand(remainingCommandSegments :list[str], authorName :str):
@@ -818,7 +819,8 @@ def findSoundPathsToPlay(prefix :str) ->list[str]:
 async def playSound(voice_channel :discord.VoiceChannel, soundPath :str, loops :int = 0 ): # pragma: no cover
 	global playSoundTask
 	if playSoundTask == None or playSoundTask.done():
-		playSoundTask = asyncio.create_task(playSound_Internal(voice_channel, soundPath, loops))
+		await playSound_Internal(voice_channel, soundPath, loops)
+		#playSoundTask = asyncio.create_task(playSound_Internal(voice_channel, soundPath, loops))
 
 async def playSound_Internal(voice_channel :discord.VoiceChannel, soundPath :str, loops :int = 0 ): # pragma: no cover
 	global shouldStopSplaying
