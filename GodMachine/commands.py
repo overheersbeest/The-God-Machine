@@ -8,6 +8,7 @@ import random
 import re
 import string
 import os
+from typing import Sequence
 
 import discord
 import flavorText as flavor
@@ -16,17 +17,17 @@ print('loading extended action success calculator...')
 import extendedActionAnalyzer
 
 print('loading tarot cards...')
-tarotCards = None
+tarotCards = {}
 with open("GodMachine/TarotCards.json") as TarotFile:
 	tarotCards = json.load(TarotFile)
 
 print('loading plots...')
-plots = None
+plots = {}
 with open("GodMachine/Plots.json") as plotFile:
 	plots = json.load(plotFile)
 
 print('loading custom commands...')
-customCommands = None
+customCommands = {}
 with open("GodMachine/CustomResponses.json") as CustomCommandFile:
 	customCommands = json.load(CustomCommandFile)
 
@@ -59,10 +60,10 @@ soundboardSoundsDir = "GodMachine/SoundboardSounds"
 
 @dataclass
 class CommandResponse:
-	message :str = None
-	silentSuccess :bool = None
+	message: str = ""
+	silentSuccess: bool = False
 
-	def __init__(self, message = None, silentSuccess = False):
+	def __init__(self, message: str | None = None, silentSuccess: bool = False):
 		if message != None:
 			self.message = message
 		else:
@@ -84,56 +85,58 @@ def tarotCommand() -> CommandResponse:
 	messageText += "\r\n_" + gcs("more info:") + " <" + card["link"] + ">_"
 	return CommandResponse(messageText)
 
-def extendedActionCommand(commandSegments :list[str]) -> CommandResponse:
+def extendedActionCommand(commandSegments: list[str]) -> CommandResponse:
 	if len(commandSegments) < 2:
 		return CommandResponse(gcs(flavor.getFlavourTextForMissingParamError()))
 	
 	#dicePool
 	poolMatch = re.search("^(\d+)([\+-]\d+)?$", commandSegments[1])
-	if poolMatch:
-		basePool = int(poolMatch.group(1))
-		mod = 0
-		if poolMatch.group(2) != None:
-			mod = int(poolMatch.group(2))
+	if not poolMatch:
+		return CommandResponse(gcs(flavor.getFlavourTextForWrongParamError()))
+	
+	basePool = int(poolMatch.group(1))
+	mod = 0
+	if poolMatch.group(2) != None:
+		mod = int(poolMatch.group(2))
+	
+	#additional arguments
+	rote = False
+	explodeThres = 10
+	fumbleMod = 0
+	patientMod = 0
+	for i in range(len(commandSegments)):
+		segment = commandSegments[i].lower()
+		if (segment == 'rote'
+			or segment == 'r'):
+			rote = True
 		
-		#additional arguments
-		rote = False
-		explodeThres = 10
-		fumbleMod = 0
-		patientMod = 0
-		for i in range(len(commandSegments)):
-			segment = commandSegments[i].lower()
-			if (segment == 'rote'
-				or segment == 'r') :
-				rote = True
-			
-			elif (segment == 'no10'
-				or segment == 'no10again'
-				or segment == 'no10-again'
-				or segment == 'no-10-again') :
-				explodeThres = 11
-			
-			else:
-				# x-again (e.g. 9again)
-				againMatch = re.search("^(\d+)a(gain)?$", segment)
-				if againMatch:
-					newThres = int(againMatch.group(1))
-					if newThres > 7 and newThres < 11:
-						explodeThres = newThres
-				
-				patientMatch = re.search("^p(atient)?(?P<n>[\+-]?\d+)?$", segment)
-				if patientMatch:
-					customN = patientMatch.groupdict()["n"]
-					if customN != None:
-						patientMod = int(customN)
-					else:
-						patientMod = 2
-				
-				fumbleMatch = re.search("^f(umble)?(?P<n>[\+-]?\d+)$", segment)
-				if fumbleMatch:
-					fumbleMod = int(fumbleMatch.groupdict()["n"])
+		elif (segment == 'no10'
+			or segment == 'no10again'
+			or segment == 'no10-again'
+			or segment == 'no-10-again'):
+			explodeThres = 11
 		
-		return CommandResponse(gcs(extendedActionAnalyzer.getExtendedActionSuccessProbabilitiesString(basePool, mod, explodeThres, rote, fumbleMod, patientMod)))
+		else:
+			# x-again (e.g. 9again)
+			againMatch = re.search("^(\d+)a(gain)?$", segment)
+			if againMatch:
+				newThres = int(againMatch.group(1))
+				if newThres > 7 and newThres < 11:
+					explodeThres = newThres
+			
+			patientMatch = re.search("^p(atient)?(?P<n>[\+-]?\d+)?$", segment)
+			if patientMatch:
+				customN = patientMatch.groupdict()["n"]
+				if customN != None:
+					patientMod = int(customN)
+				else:
+					patientMod = 2
+			
+			fumbleMatch = re.search("^f(umble)?(?P<n>[\+-]?\d+)$", segment)
+			if fumbleMatch:
+				fumbleMod = int(fumbleMatch.groupdict()["n"])
+
+	return CommandResponse(gcs(extendedActionAnalyzer.getExtendedActionSuccessProbabilitiesString(basePool, mod, explodeThres, rote, fumbleMod, patientMod)))
 
 @dataclass
 class rollResult:
@@ -152,7 +155,7 @@ class diceRollResult:
 def coinFlipCommand() -> CommandResponse:
 	return CommandResponse(gcs("result: ") + gcs("Heads" if random.choice([True, False]) else "Tails", False))
 
-def rollCommand(commandSegments :list[str], authorName :str) -> CommandResponse:
+def rollCommand(commandSegments: list[str], authorName: str) -> CommandResponse:
 	#handle rolling for initiative
 	if (len(commandSegments) >= 3
 		and (commandSegments[1].lower() == 'init'
@@ -164,21 +167,21 @@ def rollCommand(commandSegments :list[str], authorName :str) -> CommandResponse:
 	#custom rolls
 	if len(commandSegments) >= 2:
 		#percentage roll
-		if (commandSegments[1].lower() == '%') :
+		if (commandSegments[1].lower() == '%'):
 			percentage = random.randint(1, 100)
 			return CommandResponse(gcs("result: ") + str(percentage))
 		
 		#tarot card draw
-		if (commandSegments[1].lower() == 'tarot') :
+		if (commandSegments[1].lower() == 'tarot'):
 			return tarotCommand()
 		
 		#tarot card draw
 		if (commandSegments[1].lower() == 'alphabet' or
-			commandSegments[1].lower() == 'letter') :
+			commandSegments[1].lower() == 'letter'):
 			return CommandResponse(gcs("result: ") + random.choice(string.ascii_letters))
 		
 		#coin flip
-		if (commandSegments[1].lower() == 'coin') :
+		if (commandSegments[1].lower() == 'coin'):
 			return coinFlipCommand()
 		
 		#custom dice
@@ -221,13 +224,13 @@ def rollCommand(commandSegments :list[str], authorName :str) -> CommandResponse:
 				if (segment == 'chance'):
 					rollAmount = 0
 		elif (segment == 'rote'
-			or segment == 'r') :
+			or segment == 'r'):
 			rote = True
 		elif (segment == 'adv'
 			or segment == 'advanced'
-			or segment == 'blessed') :
+			or segment == 'blessed'):
 			blessed = True
-		elif (segment == 'blighted') :
+		elif (segment == 'blighted'):
 			blighted = True
 		elif (segment == 'no10'
 			or segment == 'no10again'
@@ -263,7 +266,7 @@ def rollCommand(commandSegments :list[str], authorName :str) -> CommandResponse:
 				rollResults2 = advancedRollResults
 		return CommandResponse(getRollReturnMessage(rollAmount, rote, explodeThres, exceptionalThres, rollResults1, rollResults2))
 
-def roll(rollAmount :int, rote :bool, explodeThres :int) -> rollResult :
+def roll(rollAmount: int, rote: bool, explodeThres: int) -> rollResult:
 	successesRolled = 0
 	diceValuesRolled = []
 
@@ -281,15 +284,15 @@ def roll(rollAmount :int, rote :bool, explodeThres :int) -> rollResult :
 		else:
 			successesRolled = 0
 		diceValuesRolled.append(roll)
-	else :
+	else:
 		#dice pool
 		explodedDice = 0
 		r = 0
 		while r < rollAmount + explodedDice:
 			roll = random.randint(1, 10)
-			if (roll >= 8) :
+			if (roll >= 8):
 				successesRolled += 1
-				if (roll >= explodeThres) :
+				if (roll >= explodeThres):
 					explodedDice += 1
 			elif (rote and r < rollAmount):#re-roll once, exploded dice don't benefit again from the rote quality
 				explodedDice += 1
@@ -299,7 +302,7 @@ def roll(rollAmount :int, rote :bool, explodeThres :int) -> rollResult :
 	
 	return rollResult(chanceDie = rollAmount == 0, successes = successesRolled, diceValues = diceValuesRolled)
 
-def getRollReturnMessage(rollAmount :int, rote :bool, explodeThres :int, exceptionalThres :int, rollResults :rollResult, discardedAdvancedRollResults :rollResult) -> str:
+def getRollReturnMessage(rollAmount: int, rote: bool, explodeThres: int, exceptionalThres: int, rollResults: rollResult, discardedAdvancedRollResults: rollResult | None) -> str:
 	if discardedAdvancedRollResults == None:
 		return (gcs(getRollTypeString(rollResults.chanceDie, rollAmount, rote, explodeThres, exceptionalThres) + " resulted in ") + getRollResultTypeText(rollResults.successes, exceptionalThres)
 				+ gcs(" (") + getRollDiceString(rollResults, rollAmount, rote, explodeThres) + gcs(") "
@@ -311,7 +314,7 @@ def getRollReturnMessage(rollAmount :int, rote :bool, explodeThres :int, excepti
 				+ gcs(")\nother roll resulted in " + str(discardedAdvancedRollResults.successes) + " successes (") + getRollDiceString(discardedAdvancedRollResults, rollAmount, rote, explodeThres) + gcs(")\n"
 				+ flavor.getFlavourTextForRoll(rollResults.chanceDie, rollResults.successes, exceptionalThres)))
 
-def getRollDiceString(rollResults :rollResult, rollAmount :int, rote :bool, explodeThres :int) -> str:
+def getRollDiceString(rollResults: rollResult, rollAmount: int, rote: bool, explodeThres: int) -> str:
 	rollsStr = ""
 	if rollResults.chanceDie:
 		if rollResults.diceValues[0] == 10:
@@ -372,7 +375,7 @@ def getRollDiceString(rollResults :rollResult, rollAmount :int, rote :bool, expl
 	
 	return gcs(rollsStr)
 
-def getRollTypeString(chanceDie :bool, rollAmount :int, rote :bool, explodeThres :int, exceptionalThres :int) -> str:
+def getRollTypeString(chanceDie: bool, rollAmount: int, rote: bool, explodeThres: int, exceptionalThres: int) -> str:
 	if chanceDie:
 		return "chance die"
 	elif rollAmount == 0 and rote:
@@ -404,7 +407,7 @@ def getRollTypeString(chanceDie :bool, rollAmount :int, rote :bool, explodeThres
 			rollTypeString += ") "
 		return rollTypeString
 
-def getRollResultTypeText(amountOfSuccesses :int, exceptionalThres :int) -> str:
+def getRollResultTypeText(amountOfSuccesses: int, exceptionalThres: int) -> str:
 	if amountOfSuccesses >= exceptionalThres:
 		return gcs("an ") + gcs("exceptional success", False) + gcs(" of ") + str(amountOfSuccesses)
 	elif amountOfSuccesses > 0:
@@ -414,7 +417,7 @@ def getRollResultTypeText(amountOfSuccesses :int, exceptionalThres :int) -> str:
 	else:
 		return gcs("a ") + gcs("dramatic failure", False)
 
-def parseDiceString(queryString :str, plus :bool, resultSoFar :diceRollResult, firstQuery :bool = False) -> diceRollResult:
+def parseDiceString(queryString: str, plus: bool, resultSoFar: diceRollResult, firstQuery: bool = False) -> diceRollResult:
 	match = re.search("^((?P<number>\d*)|(?P<dice>\d*d\d+))(?P<remainder>(?P<sign>[\+\-])(?=[d\d])(?P<nextQuery>[\+\d\-d]+))?$", queryString)
 	if match:
 		numberString = match.groupdict()["number"]
@@ -435,6 +438,7 @@ def parseDiceString(queryString :str, plus :bool, resultSoFar :diceRollResult, f
 				resultSoFar.resultString += "-" + str(number)
 		if diceString != None:
 			diceMatch = re.search("^(\d*)d(\d+)$", diceString)
+			assert diceMatch != None
 			if len(diceMatch.group(1)) == 0:
 				nDice = 1
 			else:
@@ -466,7 +470,7 @@ def parseDiceString(queryString :str, plus :bool, resultSoFar :diceRollResult, f
 		resultSoFar.errorString = gcs(flavor.getFlavourTextForWrongParamError() % queryString)
 		return resultSoFar
 
-def getDiceRollResponseString(pickedResult :diceRollResult, otherResult :diceRollResult, pickedHighest :bool = True) -> str:
+def getDiceRollResponseString(pickedResult: diceRollResult, otherResult: diceRollResult | None, pickedHighest: bool = True) -> str:
 	if len(pickedResult.errorString) > 0:
 		return gcs(pickedResult.errorString)
 
@@ -484,7 +488,7 @@ def getDiceRollResponseString(pickedResult :diceRollResult, otherResult :diceRol
 		responseString += "*"
 	return responseString
 
-def rollInitiativeCommand(remainingCommandSegments :list[str], authorName :str):
+def rollInitiativeCommand(authorName: str, remainingCommandSegments: list[str]):
 	global recentInitList
 	global recentInitStaleTime
 
@@ -513,7 +517,7 @@ def rollInitiativeCommand(remainingCommandSegments :list[str], authorName :str):
 			except ValueError:
 				return CommandResponse(gcs(flavor.getFlavourTextForWrongParamError()) % currentSegmentRaw)
 		
-		elif (i == insertOverrideIndex) :
+		elif (i == insertOverrideIndex):
 			try:
 				insertValue = int(currentSegment)
 			except ValueError:
@@ -542,11 +546,11 @@ def rollInitiativeCommand(remainingCommandSegments :list[str], authorName :str):
 			return CommandResponse(getInitSummaryString())
 		
 		elif (currentSegment == "clear"
-			or currentSegment == "cleanup") :
+			or currentSegment == "cleanup"):
 			recentInitList = {}
 			return CommandResponse(gcs("_Purging combat..._"))
 		
-		elif (currentSegment == "help") :
+		elif (currentSegment == "help"):
 			return CommandResponse(gcs("Followed by a number stating you standard initiative modifier, this parameter is not required if a mod argument was used" +
 				"\n**__Possible Parameters:__**" +
 				"\n**character/char/c/:** followed by a charactername." +
@@ -572,27 +576,17 @@ def rollInitiativeCommand(remainingCommandSegments :list[str], authorName :str):
 	#parameter parsing done, process result
 	if (initiativeStat == None
 		and modifier == None
-		and insertValue == None) :
+		and insertValue == None):
 		#no instruction parameters given
 		return CommandResponse(gcs(flavor.getFlavourTextForMissingParamError()))
 	else:
 		replyStringSuffix = ""
 		unmodifiedInitiative = 0
 
-		#get the unmodified initiative
-		if (initiativeStat == None
-			and insertValue == None):
-			#we have nothing to base our unmodified Initiative on, search for it in the recent list
-			cleanupIfStale = False
-			if characterName in recentInitList:
-				unmodifiedInitiative = recentInitList[characterName]["unmodified"]
-			else:
-				return CommandResponse(gcs(flavor.getFlavourTextForError()))
-		
-		elif insertValue != None:
+		if insertValue != None:
 			#we have an insert value, use that
 			unmodifiedInitiative = insertValue
-		else:
+		elif initiativeStat != None:
 			#we're rolling initiative for this character
 			roll = 0
 			rolls = 0
@@ -605,6 +599,14 @@ def rollInitiativeCommand(remainingCommandSegments :list[str], authorName :str):
 				replyStringSuffix += gcs(" (rerolled 1 time)")
 			elif rolls > 2:
 				replyStringSuffix += gcs(" (rerolled ") + str(rolls - 1) + gcs(" times)")
+		else:
+			#we have nothing to base our unmodified Initiative on, search for it in the recent list
+			cleanupIfStale = False
+			if characterName in recentInitList:
+				unmodifiedInitiative = recentInitList[characterName]["unmodified"]
+			else:
+				return CommandResponse(gcs(flavor.getFlavourTextForError()))
+
 		
 		if modifier == None:
 			modifier = 0
@@ -620,7 +622,7 @@ def rollInitiativeCommand(remainingCommandSegments :list[str], authorName :str):
 		
 		return CommandResponse(gcs(characterName, False) + gcs(" initiative: ") + str(totalInitiative) + replyStringSuffix)
 
-def getInitSummaryString() -> str :
+def getInitSummaryString() -> str:
 	sortedList = list(recentInitList.values())
 	if len(sortedList) == 0:
 		return gcs("No initiative is currently being tracked.")
@@ -638,7 +640,7 @@ def getInitSummaryString() -> str :
 		
 		return retVal
 
-def setCorruptionCommand(commandSegments :list[str]) -> CommandResponse:
+def setCorruptionCommand(commandSegments: list[str]) -> CommandResponse:
 	global corruptionFraction
 	if len(commandSegments) == 1:
 		return CommandResponse(gcs(flavor.getFlavourTextForMissingParamError()))
@@ -653,7 +655,7 @@ def setCorruptionCommand(commandSegments :list[str]) -> CommandResponse:
 		return CommandResponse(gcs("Corruption succesfully set to %.2f", False) % newCorruption)
 
 #abbreviation for 'Get Corrupted String', the function that is responsible for corrupting this bot's response messages
-def gcs(input :str, allowFullCorruption :bool = True) -> str :
+def gcs(input: str, allowFullCorruption: bool = True) -> str:
 	output = [""] * len(input)
 	excludeNextCounter = 0
 	for i in range(len(input)):
@@ -695,7 +697,7 @@ def gcs(input :str, allowFullCorruption :bool = True) -> str :
 			
 	return ''.join(output)
 
-async def shutdownCommand(guilds :list[discord.Guild]):
+async def shutdownCommand(guilds: Sequence[discord.Guild]):
 	await stopSound()
 	for guild in guilds:
 		for member in guild.members: # pragma: no cover
@@ -703,7 +705,7 @@ async def shutdownCommand(guilds :list[discord.Guild]):
 				and member.id in renameDict):
 				await member.edit(nick = renameDict[member.id].original)
 
-async def cleanupCommand(commandSegments :list[str], channel :discord.TextChannel) -> CommandResponse:
+async def cleanupCommand(commandSegments: list[str], channel: discord.TextChannel | None) -> CommandResponse:
 	if len(commandSegments) != 2:
 		return CommandResponse(gcs(flavor.getFlavourTextForMissingParamError()))
 	
@@ -734,17 +736,19 @@ async def cleanupCommand(commandSegments :list[str], channel :discord.TextChanne
 	deletedCounter = 0
 	if channel != None: # pragma: no cover
 		if type(channel) == discord.TextChannel:
-			messages = await channel.history(after=CutoffTime).flatten()
-			deletedCounter = len(messages)
-			await channel.delete_messages(messages)
+			messageList = []
+			async for message in channel.history(after=CutoffTime):
+				messageList.append(message)
+			deletedCounter = len(messageList)
+			await channel.delete_messages(messageList)
 			return CommandResponse(gcs("deleted ") + str(deletedCounter) + gcs(" sent by this bot over the last ") + str(LengthToEraseMinutes) + gcs(" minutes."))
 		else:
 			return CommandResponse(gcs("Cannot delete messages from DM channel"))
 	else:
 		return CommandResponse(gcs("no messages deleted, no channel argument provided."))
 
-def handleCustomCommands(commandSegments :list[str]) -> CommandResponse:
-	def recursiveParamCheck(remainingSegments :list[str], paramTree :dict) -> str:
+def handleCustomCommands(commandSegments: list[str]) -> CommandResponse | None:
+	def recursiveParamCheck(remainingSegments: list[str], paramTree: dict) -> str | None:
 		retVal = None
 		nextSegment = remainingSegments[0].lower()
 		for param in paramTree:
@@ -772,9 +776,9 @@ def handleCustomCommands(commandSegments :list[str]) -> CommandResponse:
 	else:
 		return None
 
-async def trySoundCommand(commandID :str, author :discord.Member) -> CommandResponse:
+async def trySoundCommand(commandID: str, author: discord.Member | None) -> CommandResponse | None:
 	if len(commandID) == 0:
-		return False # pragma: no cover
+		return None # pragma: no cover
 
 	global lastPlayedSoundPath
 	soundFilePaths = findSoundPathsToPlay(commandID.lower())
@@ -783,7 +787,7 @@ async def trySoundCommand(commandID :str, author :discord.Member) -> CommandResp
 		voice_channel = None
 		if author != None and author.voice != None:
 			voice_channel = author.voice.channel # pragma: no cover
-		if voice_channel != None: # pragma: no cover
+		if type(voice_channel) == discord.VoiceChannel: # pragma: no cover
 				lastPlayedSoundPath = random.choice(soundFilePaths)
 				return await playSound(voice_channel, lastPlayedSoundPath)
 		else:
@@ -797,13 +801,14 @@ def trySoundListCommand() -> CommandResponse:
 	r = re.compile("^(.+\D)(\d+)?\.mp3$")
 	for filename in os.listdir(soundboardSoundsDir):
 		searchMatch = r.search(filename)
-		id = searchMatch.group(1)
-		if id not in matches:
-			matches.append(id)
+		if searchMatch != None:
+			id = searchMatch.group(1)
+			if id not in matches:
+				matches.append(id)
 		
 	return CommandResponse(gcs("_**Behold, the list of my summons:**_\r\n" + "\r\n".join([x.lower() for x in sorted(matches)])))
 
-def findSoundPathsToPlay(prefix :str) ->list[str]:
+def findSoundPathsToPlay(prefix: str) ->list[str]:
 	global lastPlayedSoundPath
 	global soundboardSoundsDir
 	soundFilePaths = []
@@ -816,13 +821,14 @@ def findSoundPathsToPlay(prefix :str) ->list[str]:
 			soundFilePaths.append(lastPlayedSoundPath)
 	return soundFilePaths
 	
-async def playSound(voice_channel :discord.VoiceChannel, soundPath :str, loops :int = 0 ): # pragma: no cover
+async def playSound(voice_channel: discord.VoiceChannel | None, soundPath: str, loops: int = 0 ): # pragma: no cover
 	global playSoundTask
+	if voice_channel == None:
+		return
 	if playSoundTask == None or playSoundTask.done():
-		await playSound_Internal(voice_channel, soundPath, loops)
-		#playSoundTask = asyncio.create_task(playSound_Internal(voice_channel, soundPath, loops))
+		playSoundTask = asyncio.create_task(playSound_Internal(voice_channel, soundPath, loops))
 
-async def playSound_Internal(voice_channel :discord.VoiceChannel, soundPath :str, loops :int = 0 ): # pragma: no cover
+async def playSound_Internal(voice_channel: discord.VoiceChannel, soundPath: str, loops: int = 0 ): # pragma: no cover
 	global shouldStopSplaying
 	shouldStopSplaying = False
 	try:
@@ -844,13 +850,13 @@ async def playSound_Internal(voice_channel :discord.VoiceChannel, soundPath :str
 		except:
 			pass
 
-async def steveCommand(author :discord.Member) -> CommandResponse:
+async def steveCommand(author: discord.Member | None) -> CommandResponse:
 	global soundboardSoundsDir
 	response = CommandResponse("https://media.tenor.com/j29kKldLXKMAAAAS/d4-steve.gif")
 	# Gets voice channel of message author
 	if author != None and author.voice != None:
 		voice_channel = author.voice.channel # pragma: no cover
-		if voice_channel != None: # pragma: no cover
+		if type(voice_channel) == discord.VoiceChannel: # pragma: no cover
 			await playSound(voice_channel, os.path.join(soundboardSoundsDir, "steve.mp3"), -1)
 	return response
 

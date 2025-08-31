@@ -14,20 +14,20 @@ async def test_simpleReplies(command):
 	assert result_user != None
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("command", ["/r 1", "/roll 0", "roll 10000", "roll 151", "/r 20 r", "/r 20 9a", "/r 20 8a", "/r 20 no10", "/r 20 adv", "/r 20 blessed", "/r 5 blighted", 
-									 "/r 20 3e", "/r 20 1e", "/r 20 r 9a 1e", "roll chance r", "roll coin", "roll %", "roll d12", "roll init 4", "roll chance", "roll", "roll tarot",
-									 "roll letter"])
-async def test_roll(command):
+@pytest.mark.parametrize("command", ["/init summary", "/init 4", "/init -20", "/initiative 4", "/init 4 char exampleCharacter", "/init 4 mod -2 char exampleCharacter", "/init mod exampleCharacter",
+									 "/init insert 16", "/init mod -2", "/init insert char bob", "/init help", "/init 4 noclean", "/init 4 nosummary", "/init summary", "/init clear", "/init",
+									 "/init 5 6", "/init nosummary", "/init mod -2 char nonExistentCharacter"])
+async def test_init(command):
 	prompt = bot.CommandPrompt(command, "Test UserName", True, None, None)
 	for i in range(100):
 		result = await bot.processCommand(prompt)
 		assert result != None
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("command", ["/init summary", "/init 4", "/init -20", "/initiative 4", "/init 4 char exampleCharacter", "/init 4 mod -2 char exampleCharacter", "/init mod exampleCharacter",
-									 "/init insert 16", "/init mod -2", "/init insert char bob", "/init help", "/init 4 noclean", "/init 4 nosummary", "/init summary", "/init clear", "/init",
-									 "/init 5 6", "/init nosummary", "/init mod -2 char nonExistentCharacter"])
-async def test_init(command):
+@pytest.mark.parametrize("command", ["/r 1", "/roll 0", "roll 10000", "roll 151", "/r 20 r", "/r 20 9a", "/r 20 8a", "/r 20 no10", "/r 20 adv", "/r 20 blessed", "/r 5 blighted", 
+									 "/r 20 3e", "/r 20 1e", "/r 20 r 9a 1e", "roll chance r", "roll coin", "roll %", "roll d12", "roll init 4", "roll chance", "roll", "roll tarot",
+									 "roll letter", "roll foo"])
+async def test_roll(command):
 	prompt = bot.CommandPrompt(command, "Test UserName", True, None, None)
 	for i in range(100):
 		result = await bot.processCommand(prompt)
@@ -58,7 +58,7 @@ async def test_corruption(command, admin):
 	assert result_roll != None
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("command", ["/extend 4", "/extended 10", "/extend", "/extend 4+1", "/extend 4 r", "/extend 4 no10", "/extend 4 8a", "/extend 4 patient", "/extend 4 fumble", "/extend 4 p5", "/extend 4 f-2"])
+@pytest.mark.parametrize("command", ["/extend 4", "/extended 10", "/extend", "/extend 4+1", "/extend 4 r", "/extend 4 no10", "/extend 4 8a", "/extend 4 patient", "/extend 4 fumble", "/extend 4 p5", "/extend 4 f-2", "/extend bar"])
 async def test_extend(command):
 	prompt = bot.CommandPrompt(command, "Test UserName", True, None, None)
 	result = await bot.processCommand(prompt)
@@ -92,14 +92,14 @@ async def test_rolldice_advantage(command):
 async def test_echo(str, echo):
 	prompt = bot.CommandPrompt("/echo " + str, "Test UserName", False, None, None)
 	result = await bot.processCommand(prompt)
-	assert result.message == echo
+	assert result != None and result.message == echo
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(("str", "echo"), [("normal", "normal"), ("with space", "with space"), (" leading space", "leading space"), ("trailing space ", "trailing space"), ("break\r\nline ", "break\r\nline"), ("", ""), (" ", "")])
 async def test_echoSoft(str, echo):
 	prompt = bot.CommandPrompt("/echosoft " + str, "Test UserName", False, None, None)
 	result = await bot.processCommand(prompt)
-	assert result.message == echo
+	assert result != None and result.message == echo
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("command", ["/choose a b", "/choice a", "/choose"])
@@ -113,7 +113,7 @@ async def test_choose(command):
 async def test_customCommands(command, response):
 	prompt = bot.CommandPrompt(command, "Test UserName", False, None, None)
 	result = await bot.processCommand(prompt)
-	assert (result == None and response == None) or (result.message == response)
+	assert (result == None and response == None) or (result != None and response != None and result.message == response)
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(("command", "responseValid"), [("/thiemo", True), ("/potg", True), ("/", False), ("", False)])

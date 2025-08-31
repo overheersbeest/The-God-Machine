@@ -4,7 +4,7 @@ import time
 chanceCutoff = 0.000001
 
 
-def getPrunedSuccesses(arr :list[int]):
+def getPrunedSuccesses(arr: list[float]) -> list[float]:
 	#find trailing indices under the cutoff
 	for i in reversed(range(len(arr))):
 		if arr[i] >= chanceCutoff:
@@ -12,7 +12,7 @@ def getPrunedSuccesses(arr :list[int]):
 			return arr[:i + 1]
 	return []
 
-def findCombinationsUtil(arr :list, index :int, spacesAllowed :int, target :int, remaining :int, allCombos :list) -> None:
+def findCombinationsUtil(arr: list, index: int, spacesAllowed: int, target: int, remaining: int, allCombos: list) -> None:
 	if remaining == 0:
 		#found a new combo, save it in allCombos
 		allCombos.append([arr[x] if x < index else 0 for x in range(spacesAllowed)])
@@ -28,17 +28,17 @@ def findCombinationsUtil(arr :list, index :int, spacesAllowed :int, target :int,
 		arr[index] = k
 		findCombinationsUtil(arr, index + 1, spacesAllowed, target, remaining - k, allCombos)
 
-def findCombinations(target :int, spacesAllowed :int, allCombos :list) -> None:
+def findCombinations(target: int, spacesAllowed: int, allCombos: list) -> None:
 	arr = [-1] * spacesAllowed
 	findCombinationsUtil(arr, 0, spacesAllowed, target, target, allCombos)
 
-def multinomialCoefficient(multiset :list) -> int:
+def multinomialCoefficient(multiset: list) -> int:
 	multiplicities = {x:multiset.count(x) for x in multiset}
-	return math.factorial(len(multiset)) / math.prod([math.factorial(x) for x in multiplicities.values()])
+	return int(math.factorial(len(multiset)) / math.prod([math.factorial(x) for x in multiplicities.values()]))
 
 class Distribution:
 	def __init__(self, nDice: int, successChance: float, explodeChance: float, firstFailIgnore: bool):
-		self.successes = []
+		self.successes: list[float] = []
 		if nDice <= 0:
 			if successChance > 0:
 				nDice = 1
@@ -123,12 +123,14 @@ class Distribution:
 			retVal.successes = [x for x in other.successes]
 			return retVal
 
-		retVal = [0] * (len(self.successes) + len(other.successes) - 1)
+		retSucc = [0.0] * (len(self.successes) + len(other.successes) - 1)
 		for i in range(len(self.successes)):
 			for j in range(len(other.successes)):
-				retVal[i + j] += self.successes[i] * other.successes[j]
+				retSucc[i + j] += self.successes[i] * other.successes[j]
 		
-		return getPrunedSuccesses(retVal)
+		retVal = Distribution(0, 0, 0, False)
+		retVal.successes = getPrunedSuccesses(retSucc)
+		return retVal
 
 	#add = the result if two roll distributions were rolled together
 	def __iadd__(self, other):
@@ -138,7 +140,7 @@ class Distribution:
 			self.successes = [x for x in other.successes]
 			return self
 		
-		retVal = [0] * (len(self.successes) + len(other.successes) - 1)
+		retVal = [0.0] * (len(self.successes) + len(other.successes) - 1)
 		for i in range(len(self.successes)):
 			for j in range(len(other.successes)):
 				retVal[i + j] += self.successes[i] * other.successes[j]
@@ -154,8 +156,8 @@ class Distribution:
 			self.successes[i] += other.successes[i]
 		return self
 		
-	def __mul__(self, scalar :float):
-		retSucc = [0] * len(self.successes)
+	def __mul__(self, scalar: float):
+		retSucc = [0.0] * len(self.successes)
 		for i in range(len(self.successes)):
 			retSucc[i] = self.successes[i] * scalar
 		retVal = Distribution(0, 0, 0, False)
@@ -164,18 +166,17 @@ class Distribution:
 
 	__rmul__ = __mul__
 
-	def __imul__(self, scalar :float):
-		retSucc = [0] * len(self.successes)
+	def __imul__(self, scalar: float):
 		for i in range(len(self.successes)):
 			self.successes[i] *= scalar
 		self.successes = getPrunedSuccesses(self.successes)
 		return self
 
-def getExtendedActionDistribution(basePool :int, poolModifier :int, explodeChance :float, rote :bool, fumbleModifier :int, extraRolls :int):
+def getExtendedActionDistribution(basePool: int, poolModifier: int, explodeChance: float, rote: bool, fumbleModifier: int, extraRolls: int):
 	totalDistribution = Distribution(0, 0, 0, False)
 	if fumbleModifier != 0:
 		fumbleRollDistributions = [Distribution(basePool + poolModifier + (fumbleModifier * i), 0.3, explodeChance, rote) for i in range(max(1, basePool + extraRolls))]
-		nFumbleDistributions = [0] * max(1, basePool + extraRolls)
+		nFumbleDistributions = [0.0] * max(1, basePool + extraRolls)
 		nFumbleDistributions[0] = 1
 		for r in range(basePool + extraRolls):
 			rollDelta = Distribution(0, 0, 0, False)
@@ -196,7 +197,7 @@ def getExtendedActionDistribution(basePool :int, poolModifier :int, explodeChanc
 			totalDistribution += rollDistribution
 	return totalDistribution
 
-def getExtendedActionSuccessProbabilitiesString(basePool :int, poolModifier :int, eThres :float, rote :bool, fumbleModifier :int, patientModifier :int) -> str:
+def getExtendedActionSuccessProbabilitiesString(basePool: int, poolModifier: int, eThres: float, rote: bool, fumbleModifier: int, patientModifier: int) -> str:
 	explodeChance = 0.1 * (11 - eThres)
 
 	result = getExtendedActionDistribution(basePool, poolModifier, explodeChance, rote, fumbleModifier, patientModifier)

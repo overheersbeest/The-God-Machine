@@ -12,11 +12,10 @@ import commands
 
 from dataclasses import dataclass
 import random
-import re
 
 print('initializing discord client...')
 
-def isMessageSentByAdmin(message :discord.Message) -> bool: # pragma: no cover
+def isMessageSentByAdmin(message: discord.Message) -> bool: # pragma: no cover
 	if message.guild != None and message.author.id == message.guild.owner_id:
 		return True
 	for guild in client.guilds:
@@ -24,20 +23,25 @@ def isMessageSentByAdmin(message :discord.Message) -> bool: # pragma: no cover
 			return True
 	return False
 
-def channelCheck(message :discord.Message) -> bool: # pragma: no cover
-	return (message.guild == None
-		or (isMessageSentByAdmin(message)
-			or message.channel.name == "test"
-			or (message.channel.category != None
-				and message.channel.category.name == "Role Playing")))
+def channelCheck(message: discord.Message) -> bool: # pragma: no cover
+	if message.guild == None:
+		return True
+	
+	if isMessageSentByAdmin(message):
+		return True
+
+	if type(message.channel) == discord.TextChannel:
+		return message.channel.name == "test" or (message.channel.category != None and message.channel.category.name == "Role Playing")
+	
+	return False
 
 @dataclass
 class CommandPrompt:
-	command :str
-	authorName :str
-	adminAuthor :bool
-	member :discord.Member
-	channel :discord.TextChannel
+	command: str
+	authorName: str
+	adminAuthor: bool
+	member: discord.Member | None
+	channel: discord.TextChannel | None
 
 class MyClient(discord.Client): # pragma: no cover
 	async def on_ready(self):
@@ -48,10 +52,10 @@ class MyClient(discord.Client): # pragma: no cover
 		await client.close()
 		exit(0)
 		
-	async def on_message(self, message :discord.Message):
+	async def on_message(self, message: discord.Message):
 		command = message.content.strip()
 		if (len(command) > 0 and not message.author.bot and channelCheck(message)):
-			prompt = CommandPrompt(command, message.author.display_name, isMessageSentByAdmin(message), message.author if type(message.author) == discord.Member else None, message.channel)
+			prompt = CommandPrompt(command, message.author.display_name, isMessageSentByAdmin(message), message.author if type(message.author) == discord.Member else None, message.channel if type(message.channel) == discord.TextChannel else None)
 			response = await processCommand(prompt)
 			if response != None:
 				if len(response.message):
@@ -72,7 +76,7 @@ clientShouldShutdown = False
 #					\/	|_|  \___/ \___\___||___/___/ \/	\/\___||___/___/\__,_|\__, |\___(_)
 #																					|___/		
 
-async def processCommand(command :CommandPrompt) -> commands.CommandResponse:
+async def processCommand(command: CommandPrompt) -> commands.CommandResponse | None:
 	global clientShouldShutdown
 	commandSegments = [x for x in command.command.split(' ') if len(x) > 0]
 	commandID = commandSegments[0].lower()
@@ -86,8 +90,8 @@ async def processCommand(command :CommandPrompt) -> commands.CommandResponse:
 	elif (commandID == '/init'
 		or commandID == '/initiative'):
 		if len(commandSegments) >= 2:
-			response =  commands.rollInitiativeCommand(commandSegments[1:], command.authorName)
-		else :
+			response =  commands.rollInitiativeCommand(command.authorName, commandSegments[1:])
+		else:
 			response = commands.CommandResponse(commands.gcs("_Initiative is taken, not given._"))
 	
 	elif commandID == '/tarot':
@@ -100,13 +104,13 @@ async def processCommand(command :CommandPrompt) -> commands.CommandResponse:
 		or commandID == '/choice'):
 		if len(commandSegments) >= 2:
 			response = commands.CommandResponse(commands.gcs("Result: " + random.choice(commandSegments[1:])))
-		else :
+		else:
 			response = commands.CommandResponse(commands.gcs(flavor.getFlavourTextForMissingParamError()))
 	
 	elif commandID == "/test":
 		if command.adminAuthor:
 			response = commands.CommandResponse(commands.gcs("_I'm back, bitches_"))
-		else :
+		else:
 			response = commands.CommandResponse(commands.gcs("_what, exactly?_"))
 	
 	elif commandID == '/refuse':
@@ -135,7 +139,7 @@ async def processCommand(command :CommandPrompt) -> commands.CommandResponse:
 		response = commands.extendedActionCommand(commandSegments)
 	
 	elif ("<@!" + str(client.user.id if client.user else "") + ">" in command.command
-		and "SITREP" in command.command) :
+		and "SITREP" in command.command):
 		if command.adminAuthor:
 			response = commands.CommandResponse(commands.gcs("_All systems nominal, ready for operations._"))
 		else:
