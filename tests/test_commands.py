@@ -155,6 +155,13 @@ async def test_steveCommand():
 	assert result != None and result.succeeded()
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(("command", "responseValid"), [("/alex", True), ("/alex weapon", True), ("/alex wepon", True)])
+async def test_alexCommand(command, responseValid):
+	prompt = bot.CommandPrompt(command, "Test UserName", True, None, None)
+	result = await bot.processCommand(prompt)
+	assert not responseValid or (result != None and result.succeeded() == True)
+
+@pytest.mark.asyncio
 async def test_plotCommand():
 	prompt = bot.CommandPrompt("/plot", "Test UserName", True, None, None)
 	result = await bot.processCommand(prompt)
