@@ -173,6 +173,9 @@ async def processCommand(command: CommandPrompt) -> commands.CommandResponse | N
 	elif commandID == "/steve":
 		response = await commands.steveCommand(command.member)
 	
+	elif commandID == "/alex":
+		response = await commands.alexCommand(command.command[len(commandID)+1:].strip())
+	
 	elif commandID == "/plot":
 		response = commands.plotCommand()
 

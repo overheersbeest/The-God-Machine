@@ -26,6 +26,11 @@ plots = {}
 with open("GodMachine/Plots.json") as plotFile:
 	plots = json.load(plotFile)
 
+print('loading alex command...')
+alexResponses = {}
+with open("GodMachine/Alex.json", encoding='utf8') as AlexFile:
+	alexResponses = json.load(AlexFile)
+
 print('loading custom commands...')
 customCommands = {}
 with open("GodMachine/CustomResponses.json") as CustomCommandFile:
@@ -859,6 +864,21 @@ async def steveCommand(author: discord.Member | None) -> CommandResponse:
 		if type(voice_channel) == discord.VoiceChannel: # pragma: no cover
 			await playSound(voice_channel, os.path.join(soundboardSoundsDir, "steve.mp3"), -1)
 	return response
+
+async def alexCommand(searchTerm: str) -> CommandResponse:
+	topic = None
+	text = None
+	if len(searchTerm) == 0:
+		topic, text = random.choice(list(alexResponses.items()))
+	else:
+		for key in alexResponses.keys():
+			if searchTerm.lower() in key.lower():
+				if topic == None or (len(key) < len(topic)):
+					topic = key
+					text = alexResponses[topic]
+		if topic == None or text == None:
+			return CommandResponse(gcs(flavor.getFlavourTextForWrongParamError() % searchTerm))
+	return CommandResponse("**" + gcs(topic) + "**\r\n" + gcs(text))
 
 async def stopSound() -> CommandResponse:
 	global shouldStopSplaying
