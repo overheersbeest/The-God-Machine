@@ -43,7 +43,7 @@ fullCorruptionStart = 0.25
 corruptionResistantCharacters = ' ():,'
 corruptionImmuneCharacters = '>_*\r\n\t'
 corruptionFraction = 0.0 # 0 - 1, 0 = no corruption, 1 = full corruption
-corruptionCharacters = string.ascii_letters + string.digits + ' !"#$%&\'()+,-./:;<=?@[\]^{|}~'
+corruptionCharacters = string.ascii_letters + string.digits + ' !"#$%&\'()+,-./:;<=?@[\\]^{|}~'
 corruptionSubstitutions = ["a@4", "il|1j!", "e3", "&8", "t7", "0o", "yv", "s5$", "({[\\", ")}]/", ";:", ".,*'`", "n^", "~-+_"]
 allCorruptionSubstitutionChars = "".join(corruptionSubstitutions)
 #sounds
@@ -90,7 +90,7 @@ def extendedActionCommand(commandSegments: list[str]) -> CommandResponse:
 		return CommandResponse(gcs(flavor.getFlavourTextForMissingParamError()))
 	
 	#dicePool
-	poolMatch = re.search("^(\d+)([\+-]\d+)?$", commandSegments[1])
+	poolMatch = re.search(r"^(\d+)([\+-]\d+)?$", commandSegments[1])
 	if not poolMatch:
 		return CommandResponse(gcs(flavor.getFlavourTextForWrongParamError()))
 	
@@ -118,13 +118,13 @@ def extendedActionCommand(commandSegments: list[str]) -> CommandResponse:
 		
 		else:
 			# x-again (e.g. 9again)
-			againMatch = re.search("^(\d+)a(gain)?$", segment)
+			againMatch = re.search(r"^(\d+)a(gain)?$", segment)
 			if againMatch:
 				newThres = int(againMatch.group(1))
 				if newThres > 7 and newThres < 11:
 					explodeThres = newThres
 			
-			patientMatch = re.search("^p(atient)?(?P<n>[\+-]?\d+)?$", segment)
+			patientMatch = re.search(r"^p(atient)?(?P<n>[\+-]?\d+)?$", segment)
 			if patientMatch:
 				customN = patientMatch.groupdict()["n"]
 				if customN != None:
@@ -132,7 +132,7 @@ def extendedActionCommand(commandSegments: list[str]) -> CommandResponse:
 				else:
 					patientMod = 2
 			
-			fumbleMatch = re.search("^f(umble)?(?P<n>[\+-]?\d+)$", segment)
+			fumbleMatch = re.search(r"^f(umble)?(?P<n>[\+-]?\d+)$", segment)
 			if fumbleMatch:
 				fumbleMod = int(fumbleMatch.groupdict()["n"])
 
@@ -185,7 +185,7 @@ def rollCommand(commandSegments: list[str], authorName: str) -> CommandResponse:
 			return coinFlipCommand()
 		
 		#custom dice
-		diceMatches = [re.search("^(\d*)[dD](\d+)(([\+\-])([\+\d\-d]+))?$", x) for x in commandSegments[1:]]
+		diceMatches = [re.search(r"^(\d*)[dD](\d+)(([\+\-])([\+\d\-d]+))?$", x) for x in commandSegments[1:]]
 		dicerollIndex = next((i for i,x in enumerate(diceMatches) if x != None), -1)
 		if dicerollIndex != -1:
 			additionalParams = [x.lower() for i,x in enumerate(commandSegments[1:]) if i != dicerollIndex]
@@ -239,13 +239,13 @@ def rollCommand(commandSegments: list[str], authorName: str) -> CommandResponse:
 			explodeThres = 11
 		else:
 			# x-again (e.g. 9again)
-			againMatch = re.search("^(\d+)a(gain)?$", segment)
+			againMatch = re.search(r"^(\d+)a(gain)?$", segment)
 			if againMatch:
 				newThres = int(againMatch.group(1))
 				if newThres > 7 and newThres < 11:
 					explodeThres = newThres
 			# exceptional at x successes
-			exceptionalMatch = re.search("^(\d+)e(xceptional)?$", segment)
+			exceptionalMatch = re.search(r"^(\d+)e(xceptional)?$", segment)
 			if exceptionalMatch:
 				newThres = int(exceptionalMatch.group(1))
 				if newThres > 0:
@@ -418,7 +418,7 @@ def getRollResultTypeText(amountOfSuccesses: int, exceptionalThres: int) -> str:
 		return gcs("a ") + gcs("dramatic failure", False)
 
 def parseDiceString(queryString: str, plus: bool, resultSoFar: diceRollResult, firstQuery: bool = False) -> diceRollResult:
-	match = re.search("^((?P<number>\d*)|(?P<dice>\d*d\d+))(?P<remainder>(?P<sign>[\+\-])(?=[d\d])(?P<nextQuery>[\+\d\-d]+))?$", queryString)
+	match = re.search(r"^((?P<number>\d*)|(?P<dice>\d*d\d+))(?P<remainder>(?P<sign>[\+\-])(?=[d\d])(?P<nextQuery>[\+\d\-d]+))?$", queryString)
 	if match:
 		numberString = match.groupdict()["number"]
 		diceString = match.groupdict()["dice"]
@@ -437,7 +437,7 @@ def parseDiceString(queryString: str, plus: bool, resultSoFar: diceRollResult, f
 				resultSoFar.rollString += "-" + str(number)
 				resultSoFar.resultString += "-" + str(number)
 		if diceString != None:
-			diceMatch = re.search("^(\d*)d(\d+)$", diceString)
+			diceMatch = re.search(r"^(\d*)d(\d+)$", diceString)
 			assert diceMatch != None
 			if len(diceMatch.group(1)) == 0:
 				nDice = 1
@@ -563,7 +563,7 @@ def rollInitiativeCommand(authorName: str, remainingCommandSegments: list[str]):
 		
 		else:
 			#set init stat
-			modMatch = re.search("^\+?(\d+)$", currentSegment)
+			modMatch = re.search(r"^\+?(\d+)$", currentSegment)
 			if modMatch:
 				newInit = int(modMatch.group(1))
 				if initiativeStat == None:
@@ -672,7 +672,7 @@ def gcs(input: str, allowFullCorruption: bool = True) -> str:
 		elif c == '%' and len(input) > i + 1 and input[i+1] in 'sdfxX.':
 			#preserve string formatting
 			if input[i+1] == '.':
-				roundedMatch = re.match("(.\d+f)", input[i+1:])
+				roundedMatch = re.match(r"(.\d+f)", input[i+1:])
 				if roundedMatch:
 					stability = 1
 					excludeNextCounter = len(roundedMatch.group(1))
@@ -767,7 +767,7 @@ def handleCustomCommands(commandSegments: list[str]) -> CommandResponse | None:
 		return retVal
 	responseString = recursiveParamCheck(commandSegments, customCommands["customCommands"])
 	if responseString:
-		segmentMatch = re.search("<cmdSeg:\d>", responseString)
+		segmentMatch = re.search(r"<cmdSeg:\d>", responseString)
 		if segmentMatch:
 			for i in range(len(commandSegments)):
 				segment = commandSegments[i]
@@ -798,7 +798,7 @@ async def trySoundCommand(commandID: str, author: discord.Member | None) -> Comm
 def trySoundListCommand() -> CommandResponse:
 	global soundboardSoundsDir
 	matches = []
-	r = re.compile("^(.+\D)(\d+)?\.mp3$")
+	r = re.compile(r"^(.+\D)(\d+)?\.mp3$")
 	for filename in os.listdir(soundboardSoundsDir):
 		searchMatch = r.search(filename)
 		if searchMatch != None:
